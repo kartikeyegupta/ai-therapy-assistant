@@ -4,6 +4,7 @@ import { Button, Typography, Card, Row, Col, Space, Layout, Menu, Divider } from
 import { RobotOutlined, FileTextOutlined, ExperimentOutlined, SafetyOutlined, 
          UserOutlined, TeamOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import Link from 'next/link';
+import '@ant-design/v5-patch-for-react-19';
 
 const { Title, Paragraph, Text } = Typography;
 const { Header, Footer, Content } = Layout;

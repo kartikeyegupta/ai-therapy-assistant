@@ -3,6 +3,7 @@
 import React from 'react';
 import { Layout, Menu, Row, Col, Card, Typography, Timeline, Avatar, Divider } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
+import '@ant-design/v5-patch-for-react-19';
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
