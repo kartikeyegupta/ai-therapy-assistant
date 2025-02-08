@@ -1,7 +1,7 @@
 "use client";
 
 import '@ant-design/v5-patch-for-react-19';
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Layout,
   Menu,
@@ -20,12 +20,30 @@ import {
 } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
+import Wave from 'react-wavify'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useRouter } from 'next/navigation'
+import { Database } from '@/types/supabase'
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
 const InfoPage = () => {
   const [selectedSession, setSelectedSession] = useState("2024-01-21");
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [waveAmplitude, setWaveAmplitude] = useState(20);
+  const [isListening, setIsListening] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | undefined>(undefined);
+  const dataArrayRef = useRef<number[]>([]);
+  const frameCountRef = useRef(0);
+  const FRAME_THROTTLE = 3;
+  const [patients, setPatients] = useState<any[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [transcripts, setTranscripts] = useState<any[]>([]);
+  const supabase = createClientComponentClient<Database>()
 
   const today = new Date().toLocaleDateString("en-US", {
     year: "numeric",
@@ -33,17 +51,61 @@ const InfoPage = () => {
     day: "numeric",
   });
 
-  const patients = [
-    { key: "1", label: "Yash Dagade" },
-    { key: "2", label: "Sarah Johnson" },
-    { key: "3", label: "Michael Chen" },
-    { key: "4", label: "Emma Rodriguez" },
-  ];
+  useEffect(() => {
+    const fetchPatients = async () => {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+
+      if (error) {
+        console.error('Error fetching patients:', error)
+        return
+      }
+
+      setPatients(data || [])
+      // Set first patient as default selected
+      if (data && data.length > 0) {
+        setSelectedPatient(data[0])
+      }
+    }
+
+    fetchPatients()
+  }, [])
+
+  useEffect(() => {
+    const fetchTranscripts = async () => {
+      if (!selectedPatient) return;
+      
+      const { data, error } = await supabase
+        .from('transcripts')
+        .select('summary, therapist_notes, transcript, date')
+        .eq('patient_id', selectedPatient.id)
+        .order('date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching transcripts:', error);
+        return;
+      }
+
+      setTranscripts(data || []);
+      // Set the most recent session date as default if available
+      if (data && data.length > 0) {
+        setSelectedSession(data[0].date);
+      }
+    };
+
+    fetchTranscripts();
+  }, [selectedPatient]);
 
   const clientsMenu: MenuProps["items"] = patients.map((patient) => ({
-    key: patient.key,
-    label: patient.label,
+    key: patient.id,
+    label: patient.name,
   }));
+
+  const handlePatientChange = async (patientId: string) => {
+    const selected = patients.find(p => p.id === patientId);
+    setSelectedPatient(selected);
+  };
 
   const timelineItems = [
     {
@@ -117,6 +179,136 @@ const InfoPage = () => {
     },
   ];
 
+  const startAudioVisualization = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+      
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.7;
+
+      audioContextRef.current = audioContext;
+      analyserRef.current = analyser;
+
+      setIsListening(true);
+      frameCountRef.current = 0;
+      dataArrayRef.current = [];
+      drawWaveform();
+    } catch (err) {
+      console.error('Error accessing microphone:', err);
+    }
+  };
+
+  const stopAudioVisualization = () => {
+    setIsListening(false);
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    dataArrayRef.current = [];
+  };
+
+  const drawWaveform = () => {
+    const canvas = canvasRef.current;
+    const analyser = analyserRef.current;
+    
+    if (!canvas || !analyser) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
+    const draw = () => {
+      const width = canvas.width;
+      const height = canvas.height;
+      
+      analyser.getByteFrequencyData(dataArray);
+      
+      frameCountRef.current = (frameCountRef.current + 1) % FRAME_THROTTLE;
+      if (frameCountRef.current === 0) {
+        const sample = Math.floor(dataArray[0]);
+        dataArrayRef.current.push(sample);
+      }
+      
+      const barWidth = 6;
+      const gap = 3;
+      const maxBars = Math.floor(width / (barWidth + gap));
+      if (dataArrayRef.current.length > maxBars) {
+        dataArrayRef.current = dataArrayRef.current.slice(-maxBars);
+      }
+      
+      ctx.fillStyle = 'transparent';
+      ctx.fillRect(0, 0, width, height);
+      
+      dataArrayRef.current.forEach((value, i) => {
+        const x = i * (barWidth + gap);
+        const barHeight = (value / 255) * (height * 0.7);
+        
+        const gradient = ctx.createLinearGradient(0, height / 2 - barHeight / 2, 0, height / 2 + barHeight / 2);
+        gradient.addColorStop(0, '#7ED957');
+        gradient.addColorStop(1, '#6bc348');
+        
+        ctx.fillStyle = gradient;
+        
+        ctx.beginPath();
+        ctx.roundRect(
+          x, 
+          height / 2 - barHeight / 2,
+          barWidth, 
+          barHeight,
+          3
+        );
+        ctx.fill();
+      });
+      
+      animationFrameRef.current = requestAnimationFrame(draw);
+    };
+    
+    draw();
+  };
+
+  useEffect(() => {
+    if (isChatOpen) {
+      startAudioVisualization();
+    } else {
+      stopAudioVisualization();
+    }
+    
+    return () => {
+      stopAudioVisualization();
+    };
+  }, [isChatOpen]);
+
+  // Add this helper function at the component level
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  // Modify the Select options to use actual transcript dates
+  const sessionOptions = transcripts.map(transcript => ({
+    value: transcript.date,
+    label: new Date(transcript.date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    })
+  }));
+
+  // Get the current transcript based on selected session
+  const currentTranscript = transcripts.find(t => t.date === selectedSession);
+
   return (
     <ConfigProvider
       theme={{
@@ -127,23 +319,25 @@ const InfoPage = () => {
         },
       }}
     >
-      <Layout className="min-h-screen">
+      <Layout className="min-h-screen relative">
         {/* Navigation Header */}
         <Header className="bg-white p-4">
-          <Row justify="space-between" align="middle">
+          <Row justify="space-between" align="middle" className="pl-[1%]">
             <Col>
               <Text strong className="text-lg">
-                {today}
+                {selectedPatient?.name}
               </Text>
             </Col>
             <Col>
               <Space size="middle">
-                <Dropdown menu={{ items: clientsMenu }} placement="bottomRight">
-                  <Button
-                    type="primary"
-                    className="min-w-[120px]"
-                    style={{ backgroundColor: "#7ED957" }}
-                  >
+                <Dropdown 
+                  menu={{ 
+                    items: clientsMenu,
+                    onClick: ({ key }) => handlePatientChange(key)
+                  }} 
+                  placement="bottomRight"
+                >
+                  <Button type="primary" className="min-w-[120px]" style={{ backgroundColor: "#7ED957" }}>
                     Clients
                   </Button>
                 </Dropdown>
@@ -164,7 +358,7 @@ const InfoPage = () => {
         <Content className="p-8 bg-white">
           <Row gutter={24}>
             {/* Left Column: Patient Info */}
-            <Col xs={24} md={10}>
+            <Col xs={24} md={6}>
               <Card
                 className="mb-6 bg-gray-50"
                 cover={
@@ -179,7 +373,7 @@ const InfoPage = () => {
                     >
                       <Avatar
                         shape="square"
-                        src="/Yash.jpeg"
+                        src={selectedPatient?.picture || `${selectedPatient?.name.replace(/\s+/g, '')}.jpeg`}
                         icon={<UserOutlined />}
                         className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
                         style={{ position: "absolute" }}
@@ -189,43 +383,29 @@ const InfoPage = () => {
                 }
               >
                 <div className="space-y-4">
-                  <div className="p-4 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer text-lg shadow-sm hover:shadow-md transition-all duration-200">
-                    <Text strong>Name: </Text>
-                    <Text>Yash Dagade</Text>
+                  <div className="p-3 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer text-2xl">
+                    <Text strong className="text-2xl">Age: </Text>
+                    <Text className="text-2xl">{selectedPatient?.age} years old</Text>
                   </div>
-                  <div className="p-3 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer">
-                    <Text strong>Age: </Text>
-                    <Text>18 years old</Text>
-                  </div>
-                  <div className="p-3 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer">
-                    <Text strong>Client Since: </Text>
-                    <Text>8th June, 2023</Text>
+                  <div className="p-3 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer text-2xl">
+                    <Text strong className="text-2xl">Client Since: </Text>
+                    <Text className="text-2xl">{selectedPatient?.client_since ? formatDate(selectedPatient.client_since) : ''}</Text>
                   </div>
                   <div className="p-4 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer mt-4">
-                    <div className="space-y-3">
+                    <div className="space-y-3 text-2xl">
                       <div>
-                        <Text strong>About: </Text>
-                        <Text>
-                          Struggles with anxiety & imposter syndrome at work.
-                          Values structure but wants to be more adaptable. Finds
-                          comfort in running & journaling. Recently started
-                          setting boundaries in relationships. Wants to improve
-                          self-confidence & work-life balance.
-                        </Text>
+                        <Text strong className="text-2xl">About: </Text>
+                        <Text className="text-2xl">{selectedPatient?.about}</Text>
                       </div>
                       <div>
-                        <Text strong>Triggers: </Text>
-                        <Text>
-                          Yash feels overwhelmed by tight deadlines, unexpected
-                          changes, and conflict in relationships. He struggles
-                          with self-doubt, perceived failure, and social
-                          situations, often overthinking interactions. Lack of
-                          control leaves him anxious and unsettled.
-                        </Text>
+                        <Text strong className="text-2xl">Triggers: </Text>
+                        <Text className="text-2xl">{selectedPatient?.triggers}</Text>
                       </div>
                       <div>
-                        <Text strong>Medication: </Text>
-                        <Text>N/A</Text>
+                        <Text strong className="text-2xl">Medication: </Text>
+                        <Text className="text-2xl">
+                          {selectedPatient?.medication?.join(', ') || 'N/A'}
+                        </Text>
                       </div>
                     </div>
                   </div>
@@ -234,12 +414,16 @@ const InfoPage = () => {
             </Col>
 
             {/* Right Column: Transcripts / Chatbot */}
-            <Col xs={24} md={14}>
+            <Col xs={24} md={isChatOpen ? 12 : 18} className="transition-all duration-300">
               {/* Session Summary Card */}
               <Card
                 title={
                   <span className="text-xl">
-                    Session on {selectedSession.split("-").reverse().join("/")}
+                    Session on {new Date(selectedSession).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric"
+                    })}
                   </span>
                 }
                 className="mb-6"
@@ -247,12 +431,9 @@ const InfoPage = () => {
                   <Space>
                     <Button type="primary">View Transcript</Button>
                     <Select
-                      defaultValue="2024-01-21"
+                      value={selectedSession}
                       style={{ width: 200 }}
-                      options={[
-                        { value: "2024-01-11", label: "11th January, 2024" },
-                        { value: "2024-01-21", label: "21st January, 2024" },
-                      ]}
+                      options={sessionOptions}
                       className="text-lg"
                       onChange={(value) => setSelectedSession(value)}
                     />
@@ -262,23 +443,8 @@ const InfoPage = () => {
                 <div className="space-y-6">
                   <div>
                     <Title level={4}>Echo Summary</Title>
-                    <Text>
-                      In this session, Yash showed notable progress in managing
-                      his work-related anxiety and imposter syndrome. He
-                      reported successfully implementing several coping
-                      strategies, including daily mindfulness practices and
-                      boundary-setting at work. Key developments include: 1.
-                      Reduced anxiety around team meetings through preparation
-                      and breathing exercises 2. Successfully managed a
-                      high-pressure project deadline without overwhelming stress
-                      3. Started setting boundaries with colleagues regarding
-                      after-hours work communications 4. Continued his
-                      consistent exercise routine. Areas for continued focus
-                      include building self-confidence in professional settings
-                      and developing more robust stress management techniques
-                      for unexpected workplace changes. Yash expressed interest
-                      in exploring additional cognitive behavioral techniques in
-                      future sessions to address persistent self-doubt patterns.
+                    <Text className="text-xl">
+                      {currentTranscript?.summary || "No summary available"}
                     </Text>
                   </div>
 
@@ -286,9 +452,8 @@ const InfoPage = () => {
 
                   <div>
                     <Title level={4}>Your Summary</Title>
-                    <Text>
-                      {/* This section will be populated from your external source */}
-                      [Your summary content will go here]
+                    <Text className="text-lg">
+                      {currentTranscript?.therapist_notes || "No therapist notes available"}
                     </Text>
                   </div>
                 </div>
@@ -297,21 +462,70 @@ const InfoPage = () => {
               {/* Chatbot Transcript Card */}
               <Card
                 title={
-                  <span className="text-xl">Ask Questions about Yash</span>
+                  <span className="text-xl">Transcript</span>
                 }
                 className="mb-6"
               >
-                <Card className="bg-gray-50">
-                  <div className="flex items-center gap-3 mb-4">
-                    <img src="/logo.png" alt="Echo Logo" className="h-8 w-8" />
-                    <Title level={4}>Echo Chatbot</Title>
-                  </div>
-                  <Timeline items={timelineItems} className="text-lg" />
-                </Card>
+                <div className="max-h-[600px] overflow-y-auto pr-4">
+                  <Timeline 
+                    className="text-lg"
+                    items={currentTranscript?.transcript ? 
+                      currentTranscript.transcript.map((entry: { time: string; text: string }) => ({
+                        children: (
+                          <>
+                            <Text strong>{entry.time}</Text> —{" "}
+                            <Text className="text-lg">{entry.text}</Text>
+                          </>
+                        )
+                      })) : 
+                      [{
+                        children: <Text className="text-lg">No transcript available</Text>
+                      }]
+                    }
+                  />
+                </div>
               </Card>
             </Col>
+
+            {/* Chat Pane */}
+            {isChatOpen && (
+              <Col xs={24} md={6}>
+                <Card className="h-full relative">
+                  <div className="flex justify-between items-center mb-4">
+                    <Title level={4}>Chat with Agent</Title>
+                    <Button type="text" onClick={() => setIsChatOpen(false)}>
+                      ✕
+                    </Button>
+                  </div>
+                  {/* Chat content will go here */}
+                  
+                  {/* Waveform */}
+                  <div className="absolute bottom-0 left-0 right-0 h-24">
+                    <canvas 
+                      ref={canvasRef}
+                      className="w-full h-full"
+                      width={400}
+                      height={96}
+                    />
+                  </div>
+                </Card>
+              </Col>
+            )}
           </Row>
         </Content>
+
+        {/* Chat with Agent Button */}
+        {!isChatOpen && (
+          <Button
+            type="primary"
+            size="large"
+            className="fixed bottom-8 right-8 shadow-lg z-50 font-sans text-lg"
+            style={{ backgroundColor: "#7ED957" }}
+            onClick={() => setIsChatOpen(true)}
+          >
+            Chat with Agent
+          </Button>
+        )}
       </Layout>
     </ConfigProvider>
   );
