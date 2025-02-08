@@ -1,9 +1,26 @@
-'use client';
-import React from 'react';
-import { Button, Typography, Card, Row, Col, Space, Layout, Menu, Divider } from 'antd';
-import { RobotOutlined, FileTextOutlined, ExperimentOutlined, SafetyOutlined, 
-         UserOutlined, TeamOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import Link from 'next/link';
+"use client";
+import React from "react";
+import {
+  Button,
+  Typography,
+  Card,
+  Row,
+  Col,
+  Space,
+  Layout,
+  Menu,
+  Divider,
+} from "antd";
+import {
+  RobotOutlined,
+  FileTextOutlined,
+  ExperimentOutlined,
+  SafetyOutlined,
+  UserOutlined,
+  TeamOutlined,
+  CheckCircleOutlined,
+} from "@ant-design/icons";
+import Link from "next/link";
 
 const { Title, Paragraph, Text } = Typography;
 const { Header, Footer, Content } = Layout;
@@ -16,19 +33,21 @@ export default function Home() {
         <Row justify="space-between" align="middle">
           <Col>
             <Space align="center">
-              <img src="/echo-logo.png" alt="Echo Logo" className="h-8" />
-              <Text strong className="text-xl text-green-700">Echo</Text>
+              <img src="logo.png" alt="Echo Logo" className="h-8" />
+              <Text strong className="text-xl text-green-700">
+                Echo
+              </Text>
             </Space>
           </Col>
           <Col>
-            <Menu 
-              mode="horizontal" 
+            <Menu
+              mode="horizontal"
               className="border-none"
               items={[
-                { key: 'features', label: 'Features' },
-                { key: 'pricing', label: 'Pricing' },
-                { key: 'about', label: 'About' },
-                { key: 'contact', label: 'Contact' }
+                { key: "features", label: "Features" },
+                { key: "pricing", label: "Pricing" },
+                { key: "about", label: "About" },
+                { key: "contact", label: "Contact" },
               ]}
             />
           </Col>
@@ -50,14 +69,15 @@ export default function Home() {
                 Transform Your Therapy Practice with AI
               </Title>
               <Paragraph className="text-lg text-gray-600">
-                Echo helps therapists automate note-taking and gain deeper insights through AI-powered conversations.
+                Echo helps therapists automate note-taking and gain deeper
+                insights through AI-powered conversations.
               </Paragraph>
               <Space direction="vertical" size="large" className="w-full">
                 <Space size="large">
                   <Link href="/info">
-                    <Button 
-                      type="primary" 
-                      size="large" 
+                    <Button
+                      type="primary"
+                      size="large"
                       className="min-w-[200px]"
                     >
                       Before/After Appointment
@@ -73,9 +93,9 @@ export default function Home() {
               </Space>
             </Col>
             <Col xs={24} lg={12} className="text-center">
-              <img 
-                src="/hero-image.png" 
-                alt="Echo Platform Preview" 
+              <img
+                src="/hero-image.png"
+                alt="Echo Platform Preview"
                 className="max-w-md mx-auto"
               />
             </Col>
@@ -92,28 +112,36 @@ export default function Home() {
               <Card className="feature-card text-center w-full">
                 <RobotOutlined className="text-4xl text-green-600 mb-4" />
                 <Title level={4}>AI Note-Taking</Title>
-                <Paragraph>Automated session documentation with intelligent summarization</Paragraph>
+                <Paragraph>
+                  Automated session documentation with intelligent summarization
+                </Paragraph>
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={6} className="flex justify-center">
               <Card className="feature-card text-center w-full">
                 <FileTextOutlined className="text-4xl text-blue-600 mb-4" />
                 <Title level={4}>Smart Templates</Title>
-                <Paragraph>Customizable templates that adapt to your practice needs</Paragraph>
+                <Paragraph>
+                  Customizable templates that adapt to your practice needs
+                </Paragraph>
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={6} className="flex justify-center">
               <Card className="feature-card text-center w-full">
                 <ExperimentOutlined className="text-4xl text-green-600 mb-4" />
                 <Title level={4}>Insights Engine</Title>
-                <Paragraph>Pattern recognition and therapeutic progress tracking</Paragraph>
+                <Paragraph>
+                  Pattern recognition and therapeutic progress tracking
+                </Paragraph>
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={6} className="flex justify-center">
               <Card className="feature-card text-center w-full">
                 <SafetyOutlined className="text-4xl text-blue-600 mb-4" />
                 <Title level={4}>HIPAA Compliant</Title>
-                <Paragraph>Secure and compliant data handling for peace of mind</Paragraph>
+                <Paragraph>
+                  Secure and compliant data handling for peace of mind
+                </Paragraph>
               </Card>
             </Col>
           </Row>
@@ -130,7 +158,8 @@ export default function Home() {
                 <div className="text-3xl mb-4">1</div>
                 <Title level={4}>Record Your Session</Title>
                 <Paragraph>
-                  Simply start a session and let Echo handle the note-taking automatically
+                  Simply start a session and let Echo handle the note-taking
+                  automatically
                 </Paragraph>
               </Card>
             </Col>
@@ -139,7 +168,8 @@ export default function Home() {
                 <div className="text-3xl mb-4">2</div>
                 <Title level={4}>AI Processing</Title>
                 <Paragraph>
-                  Our AI analyzes the conversation and generates structured clinical notes
+                  Our AI analyzes the conversation and generates structured
+                  clinical notes
                 </Paragraph>
               </Card>
             </Col>
@@ -180,7 +210,9 @@ export default function Home() {
                 <CheckCircleOutlined className="text-green-600 text-xl" />
                 <Title level={4}>Focus on Patients</Title>
               </Space>
-              <Paragraph>Spend more time with patients, less on paperwork</Paragraph>
+              <Paragraph>
+                Spend more time with patients, less on paperwork
+              </Paragraph>
             </Col>
           </Row>
         </div>
@@ -193,7 +225,10 @@ export default function Home() {
           <Row gutter={[32, 32]} justify="center" className="max-w-6xl mx-auto">
             <Col xs={24} md={8} className="flex justify-center">
               <Card className="h-full w-full">
-                <Paragraph className="italic">"Echo has transformed my practice. I save hours each week on documentation."</Paragraph>
+                <Paragraph className="italic">
+                  "Echo has transformed my practice. I save hours each week on
+                  documentation."
+                </Paragraph>
                 <Text strong>Dr. Sarah Johnson</Text>
                 <br />
                 <Text type="secondary">Clinical Psychologist</Text>
@@ -201,7 +236,10 @@ export default function Home() {
             </Col>
             <Col xs={24} md={8} className="flex justify-center">
               <Card className="h-full w-full">
-                <Paragraph className="italic">"The AI insights have helped me identify patterns I might have missed."</Paragraph>
+                <Paragraph className="italic">
+                  "The AI insights have helped me identify patterns I might have
+                  missed."
+                </Paragraph>
                 <Text strong>Mark Thompson</Text>
                 <br />
                 <Text type="secondary">Licensed Therapist</Text>
@@ -209,7 +247,9 @@ export default function Home() {
             </Col>
             <Col xs={24} md={8} className="flex justify-center">
               <Card className="h-full w-full">
-                <Paragraph className="italic">"Finally, I can focus entirely on my clients during sessions."</Paragraph>
+                <Paragraph className="italic">
+                  "Finally, I can focus entirely on my clients during sessions."
+                </Paragraph>
                 <Text strong>Dr. Emily Chen</Text>
                 <br />
                 <Text type="secondary">Family Therapist</Text>
@@ -224,10 +264,13 @@ export default function Home() {
             <Col xs={24} md={16}>
               <Title level={2}>Ready to Transform Your Practice?</Title>
               <Paragraph className="text-lg mb-8">
-                Join thousands of therapists who are saving time and improving their practice with Echo.
+                Join thousands of therapists who are saving time and improving
+                their practice with Echo.
               </Paragraph>
               <Space size="large">
-                <Button type="primary" size="large">Start Free Trial</Button>
+                <Button type="primary" size="large">
+                  Start Free Trial
+                </Button>
                 <Button size="large">Schedule Demo</Button>
               </Space>
             </Col>
@@ -236,7 +279,11 @@ export default function Home() {
       </Content>
 
       <Footer className="bg-white">
-        <Row gutter={[32, 32]} justify="space-between" className="max-w-6xl mx-auto">
+        <Row
+          gutter={[32, 32]}
+          justify="space-between"
+          className="max-w-6xl mx-auto"
+        >
           <Col xs={24} md={6}>
             <Space direction="vertical">
               <img src="/echo-logo.png" alt="Echo Logo" className="h-8" />
