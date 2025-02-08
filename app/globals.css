@@ -5,6 +5,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary-green: #16a34a;
+  --light-green: #f0fdf4;
+  --primary-blue: #3b82f6;
+  --light-blue: #eff6ff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -18,4 +22,31 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.hero-section {
+  background: linear-gradient(135deg, var(--light-green), var(--light-blue));
+}
+
+.feature-card {
+  transition: transform 0.2s ease-in-out;
+  height: 100%;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.ant-card {
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.ant-btn-primary {
+  background: var(--primary-green);
+}
+
+.ant-btn-primary:hover {
+  background: #15803d;
 }
