@@ -39,6 +39,16 @@ export default function RootLayout({
               colorInfo: "#3b82f6",
               borderRadius: 8,
             },
+            components: {
+              Layout: {
+                headerBg: 'transparent',
+                headerBorderColorSplit: 'transparent',
+              },
+              Typography: {
+                fontSizeHeading1: '4.5rem',
+                colorTextHeading: '#16a34a'
+              }
+            }
           }}
         >
           {children}

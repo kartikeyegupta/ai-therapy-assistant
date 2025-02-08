@@ -8,18 +8,7 @@ import {
   Col,
   Space,
   Layout,
-  Menu,
-  Divider,
 } from "antd";
-import {
-  RobotOutlined,
-  FileTextOutlined,
-  ExperimentOutlined,
-  SafetyOutlined,
-  UserOutlined,
-  TeamOutlined,
-  CheckCircleOutlined,
-} from "@ant-design/icons";
 import Link from "next/link";
 import "@ant-design/v5-patch-for-react-19";
 
@@ -30,300 +19,142 @@ export default function Home() {
   return (
     <Layout className="min-h-screen">
       {/* Navigation Header */}
-      <Header className="bg-white border-b">
-        <Row justify="space-between" align="middle">
-          <Col>
-            <Space align="center">
-              <img src="logo.png" alt="Echo Logo" className="h-8" />
-              <Text strong className="text-xl text-green-700">
-                Echo
-              </Text>
-            </Space>
-          </Col>
-          <Col>
-            <Menu
-              mode="horizontal"
-              className="border-none"
-              items={[
-                { key: "features", label: "Features" },
-                { key: "pricing", label: "Pricing" },
-                { key: "about", label: "About" },
-                { key: "contact", label: "Contact" },
-              ]}
+      <Header style={{ background: 'none', border: 'none' }} className="absolute w-full z-10">
+        <div className="w-full px-4 flex justify-between items-center h-full">
+          <Space align="center" className="absolute left-8" size="middle">
+            <img 
+              src="/logo.png" 
+              alt="Echo Logo" 
+              className="h-12 w-12 object-contain"
             />
-          </Col>
-          <Col>
-            <Space>
-              <Button>Log In</Button>
-              <Button type="primary">Sign Up</Button>
-            </Space>
-          </Col>
-        </Row>
+            <Text strong className="text-3xl text-green-700">Echo</Text>
+          </Space>
+          <Space className="absolute right-8">
+            <Button type="primary" size="large" className="text-lg px-8">
+              Try Echo
+            </Button>
+          </Space>
+        </div>
       </Header>
 
-      <Content>
-        {/* Hero Section */}
-        <div className="hero-section py-20 px-4">
-          <Row justify="center" align="middle" gutter={[32, 32]}>
-            <Col xs={24} lg={12}>
-              <Title level={1} className="text-green-700">
-                Transform Your Therapy Practice with AI
-              </Title>
-              <Paragraph className="text-lg text-gray-600">
-                Echo helps therapists automate note-taking and gain deeper
-                insights through AI-powered conversations.
-              </Paragraph>
-              <Space direction="vertical" size="large" className="w-full">
-                <Space size="large">
-                  <Link href="/info">
-                    <Button
-                      type="primary"
-                      size="large"
-                      className="min-w-[200px]"
-                    >
-                      Before/After Appointment
-                    </Button>
-                  </Link>
-                  <Button type="primary" size="large" className="min-w-[200px]">
-                    During Appointment
-                  </Button>
-                </Space>
-                <Space size="large">
-                  <Button size="large">Learn More</Button>
-                </Space>
-              </Space>
-            </Col>
-            <Col xs={24} lg={12} className="text-center">
-              <img
-                src="/hero-image.png"
-                alt="Echo Platform Preview"
-                className="max-w-md mx-auto"
-              />
-            </Col>
-          </Row>
-        </div>
+      <Content className="bg-green-50">
+        {/* Main Content Section */}
+        <div className="max-w-7xl mx-auto px-4 py-16 pt-32">
+          {/* Hero Text */}
+          <div className="text-center mb-12">
+            <Title level={1} className="text-4xl md:text-5xl mb-6">
+              Transform Your Therapy Practice
+            </Title>
+            <Paragraph className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Echo helps therapists focus on their clients. Our AI-powered platform automates 
+              note-taking and provides insights, saving you hours each week while improving 
+              documentation quality.
+            </Paragraph>
+          </div>
 
-        {/* Features Section */}
-        <div className="features-section bg-green-50 py-16 px-4">
-          <Title level={2} className="text-center mb-12">
-            Features that Empower Your Practice
-          </Title>
-          <Row gutter={[32, 32]} justify="center" className="max-w-6xl mx-auto">
-            <Col xs={24} sm={12} lg={6} className="flex justify-center">
-              <Card className="feature-card text-center w-full">
-                <RobotOutlined className="text-4xl text-green-600 mb-4" />
-                <Title level={4}>AI Note-Taking</Title>
-                <Paragraph>
-                  Automated session documentation with intelligent summarization
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6} className="flex justify-center">
-              <Card className="feature-card text-center w-full">
-                <FileTextOutlined className="text-4xl text-blue-600 mb-4" />
-                <Title level={4}>Smart Templates</Title>
-                <Paragraph>
-                  Customizable templates that adapt to your practice needs
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6} className="flex justify-center">
-              <Card className="feature-card text-center w-full">
-                <ExperimentOutlined className="text-4xl text-green-600 mb-4" />
-                <Title level={4}>Insights Engine</Title>
-                <Paragraph>
-                  Pattern recognition and therapeutic progress tracking
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6} className="flex justify-center">
-              <Card className="feature-card text-center w-full">
-                <SafetyOutlined className="text-4xl text-blue-600 mb-4" />
-                <Title level={4}>HIPAA Compliant</Title>
-                <Paragraph>
-                  Secure and compliant data handling for peace of mind
-                </Paragraph>
-              </Card>
-            </Col>
-          </Row>
-        </div>
+          {/* Video Section */}
+          <div className="mb-20">
+            <div className="relative w-full max-w-4xl mx-auto bg-green-50 rounded-xl overflow-hidden">
+              <iframe
+                className="w-full aspect-video"
+                src="https://www.youtube.com/embed/AyvebPNWHtU"
+                title="Echo Demo Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
 
-        {/* How It Works Section */}
-        <div className="how-it-works py-16 px-4">
-          <Title level={2} className="text-center mb-12">
-            How Echo Works
-          </Title>
-          <Row gutter={[48, 48]} justify="center" className="max-w-6xl mx-auto">
-            <Col xs={24} md={8} className="flex justify-center">
-              <Card className="text-center h-full w-full">
-                <div className="text-3xl mb-4">1</div>
-                <Title level={4}>Record Your Session</Title>
-                <Paragraph>
-                  Simply start a session and let Echo handle the note-taking
-                  automatically
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col xs={24} md={8} className="flex justify-center">
-              <Card className="text-center h-full w-full">
-                <div className="text-3xl mb-4">2</div>
-                <Title level={4}>AI Processing</Title>
-                <Paragraph>
-                  Our AI analyzes the conversation and generates structured
-                  clinical notes
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col xs={24} md={8} className="flex justify-center">
-              <Card className="text-center h-full w-full">
-                <div className="text-3xl mb-4">3</div>
-                <Title level={4}>Review & Export</Title>
-                <Paragraph>
-                  Review, edit, and export your notes in your preferred format
-                </Paragraph>
-              </Card>
-            </Col>
-          </Row>
-        </div>
+          {/* Stats Section */}
+          <div className="mb-20 text-center">
+            <Text className="text-gray-600 text-2xl font-medium block mb-3">
+              Trusted by thousands of mental health professionals across the globe
+            </Text>
+            <Text className="text-gray-600 text-xl">
+              Join the community of therapists who save 5+ hours every week with Echo
+            </Text>
+          </div>
 
-        {/* Benefits Section */}
-        <div className="benefits bg-gray-50 py-16 px-4">
-          <Title level={2} className="text-center mb-12">
-            Benefits for Your Practice
-          </Title>
-          <Row gutter={[32, 32]} justify="center" className="max-w-6xl mx-auto">
-            <Col xs={24} md={8}>
-              <Space>
-                <CheckCircleOutlined className="text-green-600 text-xl" />
-                <Title level={4}>Save 5+ Hours Weekly</Title>
-              </Space>
-              <Paragraph>Reduce documentation time dramatically</Paragraph>
-            </Col>
-            <Col xs={24} md={8}>
-              <Space>
-                <CheckCircleOutlined className="text-green-600 text-xl" />
-                <Title level={4}>Improve Quality</Title>
-              </Space>
-              <Paragraph>More detailed and consistent documentation</Paragraph>
-            </Col>
-            <Col xs={24} md={8}>
-              <Space>
-                <CheckCircleOutlined className="text-green-600 text-xl" />
-                <Title level={4}>Focus on Patients</Title>
-              </Space>
-              <Paragraph>
-                Spend more time with patients, less on paperwork
-              </Paragraph>
-            </Col>
-          </Row>
-        </div>
+          {/* Testimonials */}
+          <div className="mb-20">
+            <Title level={2} className="text-center mb-12">
+              Trusted by Leading Therapists
+            </Title>
+            <Row gutter={[32, 32]} justify="center">
+              <Col xs={24} md={8}>
+                <Card className="h-full">
+                  <div className="flex flex-col items-center">
+                    <img 
+                      src="/therapist1.png" 
+                      alt="Dr. Sarah Johnson" 
+                      className="w-24 h-24 rounded-full object-cover mb-6"
+                    />
+                    <Paragraph className="text-lg italic mb-6">
+                      "Echo has revolutionized how I handle session documentation. I save over 5 hours every week, 
+                      giving me more time to focus on my clients."
+                    </Paragraph>
+                    <div>
+                      <Text strong className="block">Dr. Sarah Johnson</Text>
+                      <Text type="secondary">Clinical Psychologist</Text>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+              <Col xs={24} md={8}>
+                <Card className="h-full">
+                  <div className="flex flex-col items-center">
+                    <img 
+                      src="/therapist1.png" 
+                      alt="Mark Thompson" 
+                      className="w-24 h-24 rounded-full object-cover mb-6"
+                    />
+                    <Paragraph className="text-lg italic mb-6">
+                      "The AI insights have helped me identify patterns I might have missed. It's like having 
+                      an intelligent assistant that helps me provide better care."
+                    </Paragraph>
+                    <div>
+                      <Text strong className="block">Mark Thompson</Text>
+                      <Text type="secondary">Licensed Therapist</Text>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+              <Col xs={24} md={8}>
+                <Card className="h-full">
+                  <div className="flex flex-col items-center">
+                    <img 
+                      src="/therapist1.png" 
+                      alt="Dr. Emily Chen" 
+                      className="w-24 h-24 rounded-full object-cover mb-6"
+                    />
+                    <Paragraph className="text-lg italic mb-6">
+                      "Finally, I can be fully present during sessions without worrying about taking notes. 
+                      The documentation quality has actually improved."
+                    </Paragraph>
+                    <div>
+                      <Text strong className="block">Dr. Emily Chen</Text>
+                      <Text type="secondary">Family Therapist</Text>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+            </Row>
+          </div>
 
-        {/* Testimonials Section */}
-        <div className="testimonials py-16 px-4">
-          <Title level={2} className="text-center mb-12">
-            What Therapists Say
-          </Title>
-          <Row gutter={[32, 32]} justify="center" className="max-w-6xl mx-auto">
-            <Col xs={24} md={8} className="flex justify-center">
-              <Card className="h-full w-full">
-                <Paragraph className="italic">
-                  "Echo has transformed my practice. I save hours each week on
-                  documentation."
-                </Paragraph>
-                <Text strong>Dr. Sarah Johnson</Text>
-                <br />
-                <Text type="secondary">Clinical Psychologist</Text>
-              </Card>
-            </Col>
-            <Col xs={24} md={8} className="flex justify-center">
-              <Card className="h-full w-full">
-                <Paragraph className="italic">
-                  "The AI insights have helped me identify patterns I might have
-                  missed."
-                </Paragraph>
-                <Text strong>Mark Thompson</Text>
-                <br />
-                <Text type="secondary">Licensed Therapist</Text>
-              </Card>
-            </Col>
-            <Col xs={24} md={8} className="flex justify-center">
-              <Card className="h-full w-full">
-                <Paragraph className="italic">
-                  "Finally, I can focus entirely on my clients during sessions."
-                </Paragraph>
-                <Text strong>Dr. Emily Chen</Text>
-                <br />
-                <Text type="secondary">Family Therapist</Text>
-              </Card>
-            </Col>
-          </Row>
-        </div>
-
-        {/* CTA Section */}
-        <div className="cta bg-green-50 py-16 px-4">
-          <Row justify="center" align="middle" className="text-center">
-            <Col xs={24} md={16}>
-              <Title level={2}>Ready to Transform Your Practice?</Title>
-              <Paragraph className="text-lg mb-8">
-                Join thousands of therapists who are saving time and improving
-                their practice with Echo.
-              </Paragraph>
-              <Space size="large">
-                <Button type="primary" size="large">
-                  Start Free Trial
-                </Button>
-                <Button size="large">Schedule Demo</Button>
-              </Space>
-            </Col>
-          </Row>
+          {/* CTA Section */}
+          <div className="text-center">
+            <Button type="primary" size="large" className="px-8">
+              Start Free Trial
+            </Button>
+          </div>
         </div>
       </Content>
 
       <Footer className="bg-white">
-        <Row
-          gutter={[32, 32]}
-          justify="space-between"
-          className="max-w-6xl mx-auto"
-        >
-          <Col xs={24} md={6}>
-            <Space direction="vertical">
-              <img src="/echo-logo.png" alt="Echo Logo" className="h-8" />
-              <Paragraph>
-                Empowering therapists with AI-powered documentation solutions.
-              </Paragraph>
-            </Space>
-          </Col>
-          <Col xs={24} md={4}>
-            <Title level={5}>Product</Title>
-            <Space direction="vertical">
-              <Button type="link">Features</Button>
-              <Button type="link">Pricing</Button>
-              <Button type="link">Security</Button>
-            </Space>
-          </Col>
-          <Col xs={24} md={4}>
-            <Title level={5}>Company</Title>
-            <Space direction="vertical">
-              <Button type="link">About Us</Button>
-              <Button type="link">Blog</Button>
-              <Button type="link">Careers</Button>
-            </Space>
-          </Col>
-          <Col xs={24} md={4}>
-            <Title level={5}>Resources</Title>
-            <Space direction="vertical">
-              <Button type="link">Documentation</Button>
-              <Button type="link">Support</Button>
-              <Button type="link">Contact</Button>
-            </Space>
-          </Col>
-        </Row>
-        <Divider />
-        <Row justify="center">
-          <Col>
-            <Text type="secondary">© 2024 Echo. All rights reserved.</Text>
-          </Col>
-        </Row>
+        <div className="max-w-7xl mx-auto text-center">
+          <Text type="secondary">© 2024 Echo. All rights reserved.</Text>
+        </div>
       </Footer>
     </Layout>
   );
