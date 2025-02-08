@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Layout,
   Menu,
@@ -15,21 +15,34 @@ import {
   Button,
   Space,
   ConfigProvider,
+  Dropdown,
 } from "antd";
 import { UserOutlined } from "@ant-design/icons";
+import type { MenuProps } from "antd";
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
 const InfoPage = () => {
-  const today = new Date().toLocaleDateString();
+  const [selectedSession, setSelectedSession] = useState("2024-01-21");
+
+  const today = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   const patients = [
-    { key: "1", label: "Yash Dagade", value: "yash" },
-    { key: "2", label: "Sarah Johnson", value: "sarah" },
-    { key: "3", label: "Michael Chen", value: "michael" },
-    { key: "4", label: "Emma Rodriguez", value: "emma" },
+    { key: "1", label: "Yash Dagade" },
+    { key: "2", label: "Sarah Johnson" },
+    { key: "3", label: "Michael Chen" },
+    { key: "4", label: "Emma Rodriguez" },
   ];
+
+  const clientsMenu: MenuProps["items"] = patients.map((patient) => ({
+    key: patient.key,
+    label: patient.label,
+  }));
 
   const timelineItems = [
     {
@@ -115,64 +128,73 @@ const InfoPage = () => {
     >
       <Layout className="min-h-screen">
         {/* Navigation Header */}
-        <Header className="bg-white border-b p-4">
-          <Row>
-            <Col flex="200px">
-              <Text strong>{today}</Text>
+        <Header className="bg-white p-4">
+          <Row justify="space-between" align="middle">
+            <Col>
+              <Text strong className="text-lg">
+                {today}
+              </Text>
             </Col>
-            <Col flex="auto">
-              <div className="flex justify-end items-center">
-                <Select
-                  defaultValue="yash"
-                  style={{ width: 200, marginRight: 16 }}
-                  options={patients}
-                  className="text-base"
-                />
-                <Menu
-                  mode="horizontal"
-                  className="border-none"
-                  defaultSelectedKeys={["2"]}
-                  items={[
-                    { key: "2", label: "Schedule" },
-                    { key: "3", label: "Reports" },
-                    { key: "4", label: "Settings" },
-                  ]}
-                />
-              </div>
+            <Col>
+              <Space size="middle">
+                <Dropdown menu={{ items: clientsMenu }} placement="bottomRight">
+                  <Button
+                    type="primary"
+                    className="min-w-[120px]"
+                    style={{ backgroundColor: "#7ED957" }}
+                  >
+                    Clients
+                  </Button>
+                </Dropdown>
+                <Button
+                  type="primary"
+                  className="min-w-[120px]"
+                  style={{ backgroundColor: "#7ED957" }}
+                >
+                  Schedule
+                </Button>
+              </Space>
             </Col>
           </Row>
+          <Divider className="my-4" />
         </Header>
 
         {/* Main Content */}
-        <Content className="p-8">
+        <Content className="p-8 bg-white">
           <Row gutter={24}>
             {/* Left Column: Patient Info */}
             <Col xs={24} md={10}>
               <Card
-                className="mb-6"
+                className="mb-6 bg-gray-50"
                 cover={
                   <div className="px-4 pt-4">
-                    <Avatar
-                      shape="square"
-                      src="/Yash.jpeg"
-                      icon={<UserOutlined />}
-                      className="w-[95%] h-[300px] object-cover mx-auto block rounded-lg"
-                    />
+                    <div
+                      style={{
+                        position: "relative",
+                        width: "95%",
+                        paddingTop: "95%",
+                        margin: "0 auto",
+                      }}
+                    >
+                      <Avatar
+                        shape="square"
+                        src="/Yash.jpeg"
+                        icon={<UserOutlined />}
+                        className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
+                        style={{ position: "absolute" }}
+                      />
+                    </div>
                   </div>
                 }
               >
                 <div className="space-y-4">
-                  <div className="p-4 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer text-lg">
+                  <div className="p-4 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer text-lg shadow-sm hover:shadow-md transition-all duration-200">
                     <Text strong>Name: </Text>
                     <Text>Yash Dagade</Text>
                   </div>
                   <div className="p-3 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer">
                     <Text strong>Age: </Text>
                     <Text>18 years old</Text>
-                  </div>
-                  <div className="p-3 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer">
-                    <Text strong>Location: </Text>
-                    <Text>Durham, NC</Text>
                   </div>
                   <div className="p-3 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer">
                     <Text strong>Client Since: </Text>
@@ -214,41 +236,61 @@ const InfoPage = () => {
             <Col xs={24} md={14}>
               {/* Session Summary Card */}
               <Card
-                title={<span className="text-xl">Session Summary</span>}
+                title={
+                  <span className="text-xl">
+                    Session on {selectedSession.split("-").reverse().join("/")}
+                  </span>
+                }
                 className="mb-6"
                 extra={
                   <Space>
                     <Button type="primary">View Transcript</Button>
                     <Select
-                      defaultValue="Select Session"
+                      defaultValue="2024-01-21"
                       style={{ width: 200 }}
                       options={[
                         { value: "2024-01-11", label: "11th January, 2024" },
                         { value: "2024-01-21", label: "21st January, 2024" },
                       ]}
                       className="text-lg"
+                      onChange={(value) => setSelectedSession(value)}
                     />
                   </Space>
                 }
               >
-                <Text>
-                  In this session, Yash showed notable progress in managing his
-                  work-related anxiety and imposter syndrome. He reported
-                  successfully implementing several coping strategies, including
-                  daily mindfulness practices and boundary-setting at work. Key
-                  developments include: 1. Reduced anxiety around team meetings
-                  through preparation and breathing exercises 2. Successfully
-                  managed a high-pressure project deadline without overwhelming
-                  stress 3. Started setting boundaries with colleagues regarding
-                  after-hours work communications 4. Continued his consistent
-                  exercise routine, which has positively impacted his mood Areas
-                  for continued focus include building self-confidence in
-                  professional settings and developing more robust stress
-                  management techniques for unexpected workplace changes. Yash
-                  expressed interest in exploring additional cognitive
-                  behavioral techniques in future sessions to address persistent
-                  self-doubt patterns.
-                </Text>
+                <div className="space-y-6">
+                  <div>
+                    <Title level={4}>Echo Summary</Title>
+                    <Text>
+                      In this session, Yash showed notable progress in managing
+                      his work-related anxiety and imposter syndrome. He
+                      reported successfully implementing several coping
+                      strategies, including daily mindfulness practices and
+                      boundary-setting at work. Key developments include: 1.
+                      Reduced anxiety around team meetings through preparation
+                      and breathing exercises 2. Successfully managed a
+                      high-pressure project deadline without overwhelming stress
+                      3. Started setting boundaries with colleagues regarding
+                      after-hours work communications 4. Continued his
+                      consistent exercise routine. Areas for continued focus
+                      include building self-confidence in professional settings
+                      and developing more robust stress management techniques
+                      for unexpected workplace changes. Yash expressed interest
+                      in exploring additional cognitive behavioral techniques in
+                      future sessions to address persistent self-doubt patterns.
+                    </Text>
+                  </div>
+
+                  <Divider />
+
+                  <div>
+                    <Title level={4}>Your Summary</Title>
+                    <Text>
+                      {/* This section will be populated from your external source */}
+                      [Your summary content will go here]
+                    </Text>
+                  </div>
+                </div>
               </Card>
 
               {/* Chatbot Transcript Card */}
