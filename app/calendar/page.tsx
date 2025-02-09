@@ -1,5 +1,147 @@
 "use client";
 
+import React, { useState } from "react";
+import { Select, Calendar, Badge, Card, Typography } from "antd";
+import dayjs from "dayjs";
+
+const { Option } = Select;
+const { Title } = Typography;
+
+const fakeAppointments = [
+  {
+    date: "2025-02-10",
+    title: "Initial Consultation - Emily Chen",
+  },
+  {
+    date: "2025-02-10",
+    title: "Follow-up Session - Marcus Thompson",
+  },
+  {
+    date: "2025-02-12",
+    title: "Group Therapy Session A",
+  },
+  {
+    date: "2025-02-12",
+    title: "Couples Counseling - Johnson Family",
+  },
+  {
+    date: "2025-02-15",
+    title: "Emergency Session - Sarah Williams",
+  },
+  {
+    date: "2025-02-15",
+    title: "Initial Consultation - David Rodriguez",
+  },
+  {
+    date: "2025-02-17",
+    title: "Follow-up Session - Lisa Parker",
+  },
+  {
+    date: "2025-02-17",
+    title: "Anxiety Management - Michael Brown",
+  },
+  {
+    date: "2025-02-19",
+    title: "Depression Counseling - James Wilson",
+  },
+  {
+    date: "2025-02-20",
+    title: "PTSD Treatment - Robert Miller",
+  },
+];
+
+const getAppointmentsForDate = (date) => {
+  return fakeAppointments.filter((appt) => appt.date === date);
+};
+
+const WeeklyMonthlyCalendar = () => {
+  const [view, setView] = useState("Month");
+  const [currentDate, setCurrentDate] = useState(dayjs());
+
+  const handleViewChange = (value) => {
+    setView(value);
+  };
+
+  const dateCellRender = (value) => {
+    const formattedDate = value.format("YYYY-MM-DD");
+    const appointments = getAppointmentsForDate(formattedDate);
+
+    return (
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        {appointments.map((appt, index) => (
+          <li key={index}>
+            <Badge status="success" text={appt.title} />
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
+  const renderWeekView = () => {
+    const startOfWeek = currentDate.startOf("week");
+    const days = Array.from({ length: 5 }, (_, i) =>
+      startOfWeek.add(i + 1, "day")
+    );
+
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr)",
+          gap: "10px",
+          height: "calc(100vh - 150px)",
+        }}
+      >
+        {days.map((day, index) => (
+          <Card
+            key={index}
+            title={day.format("dddd, MMM D")}
+            style={{ height: "100%" }}
+          >
+            {dateCellRender(day)}
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
+  const headerRender = () => {
+    return null;
+  };
+
+  return (
+    <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
+        <Select
+          value={view}
+          onChange={handleViewChange}
+          style={{ width: "150px" }}
+        >
+          <Option value="Month">Month</Option>
+          <Option value="Week">Week</Option>
+        </Select>
+        <Title level={4}>{currentDate.format("MMMM YYYY")}</Title>
+      </div>
+      {view === "Month" ? (
+        <Calendar dateCellRender={dateCellRender} headerRender={headerRender} />
+      ) : (
+        renderWeekView()
+      )}
+    </div>
+  );
+};
+
+export default WeeklyMonthlyCalendar;
+
+/*"use client";
+
 import React, { useEffect, useState } from "react";
 import { Calendar, Badge, Layout, Typography, Row, Col, Card } from "antd";
 import type { Dayjs } from "dayjs";
@@ -100,6 +242,7 @@ const appointments: Record<string, Appointment[]> = {
 
 export default function AppointmentCalendar() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [calendarView, setCalendarView] = useState<"month" | "week">("month");
 
   useEffect(() => {
     // ... existing fetch logic ...
@@ -143,6 +286,10 @@ export default function AppointmentCalendar() {
               <Calendar
                 cellRender={dateCellRender}
                 className="custom-calendar"
+                mode={calendarView}
+                onPanelChange={(date, mode) =>
+                  setCalendarView(mode as "month" | "week")
+                }
               />
             </Card>
           </Col>
@@ -161,4 +308,4 @@ export default function AppointmentCalendar() {
       </Content>
     </Layout>
   );
-}
+}*/

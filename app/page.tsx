@@ -170,6 +170,18 @@ export default function Home() {
               Start Free Trial
             </Button>
           </div>
+
+          <div className="text-center mt-4">
+            <Link href="/calendar">
+              <Button
+                type="primary"
+                className="min-w-[120px]"
+                style={{ backgroundColor: "#7ED957" }}
+              >
+                Schedule
+              </Button>
+            </Link>
+          </div>
         </div>
       </Content>
 
