@@ -1,6 +1,6 @@
 "use client";
 
-import '@ant-design/v5-patch-for-react-19';
+import "@ant-design/v5-patch-for-react-19";
 import React, { useState, useEffect, useRef } from "react";
 import {
   Layout,
@@ -21,11 +21,11 @@ import {
 } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
-import Wave from 'react-wavify'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Database } from '@/app/types/supabase'
-import Realtime from '../realtime';
+import Wave from "react-wavify";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Database } from "@/app/types/supabase";
+import Realtime from "../realtime";
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -45,7 +45,8 @@ const InfoPage = () => {
   const [patients, setPatients] = useState<any[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [transcripts, setTranscripts] = useState<any[]>([]);
-  const supabase = createClientComponentClient<Database>()
+  const supabase = createClientComponentClient<Database>();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
@@ -60,33 +61,31 @@ const InfoPage = () => {
 
   useEffect(() => {
     const fetchPatients = async () => {
-      const { data, error } = await supabase
-        .from('patients')
-        .select('*')
+      const { data, error } = await supabase.from("patients").select("*");
 
       if (error) {
-        console.error('Error fetching patients:', error)
-        return
+        console.error("Error fetching patients:", error);
+        return;
       }
 
       setPatients(data || [])
     }
 
-    fetchPatients()
-  }, [])
+    fetchPatients();
+  }, []);
 
   useEffect(() => {
     const fetchTranscripts = async () => {
       if (!selectedPatient) return;
-      
+
       const { data, error } = await supabase
-        .from('transcripts')
-        .select('summary, therapist_notes, transcript, date')
-        .eq('patient_id', selectedPatient.id)
-        .order('date', { ascending: false });
+        .from("transcripts")
+        .select("summary, therapist_notes, transcript, date")
+        .eq("patient_id", selectedPatient.id)
+        .order("date", { ascending: false });
 
       if (error) {
-        console.error('Error fetching transcripts:', error);
+        console.error("Error fetching transcripts:", error);
         return;
       }
 
@@ -127,7 +126,7 @@ const InfoPage = () => {
 
       setSelectedPatient(data);
     } catch (err) {
-      console.error('Error in handlePatientChange:', err);
+      console.error("Error in handlePatientChange:", err);
     }
   };
 
@@ -206,11 +205,12 @@ const InfoPage = () => {
   const startAudioVisualization = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioContext = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
       const source = audioContext.createMediaStreamSource(stream);
       source.connect(analyser);
-      
+
       analyser.fftSize = 512;
       analyser.smoothingTimeConstant = 0.7;
 
@@ -222,7 +222,7 @@ const InfoPage = () => {
       dataArrayRef.current = [];
       drawWaveform();
     } catch (err) {
-      console.error('Error accessing microphone:', err);
+      console.error("Error accessing microphone:", err);
     }
   };
 
@@ -240,61 +240,60 @@ const InfoPage = () => {
   const drawWaveform = () => {
     const canvas = canvasRef.current;
     const analyser = analyserRef.current;
-    
+
     if (!canvas || !analyser) return;
-    
-    const ctx = canvas.getContext('2d');
+
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
-    
+
     const draw = () => {
       const width = canvas.width;
       const height = canvas.height;
-      
+
       analyser.getByteFrequencyData(dataArray);
-      
+
       frameCountRef.current = (frameCountRef.current + 1) % FRAME_THROTTLE;
       if (frameCountRef.current === 0) {
         const sample = Math.floor(dataArray[0]);
         dataArrayRef.current.push(sample);
       }
-      
+
       const barWidth = 6;
       const gap = 3;
       const maxBars = Math.floor(width / (barWidth + gap));
       if (dataArrayRef.current.length > maxBars) {
         dataArrayRef.current = dataArrayRef.current.slice(-maxBars);
       }
-      
-      ctx.fillStyle = 'transparent';
+
+      ctx.fillStyle = "transparent";
       ctx.fillRect(0, 0, width, height);
-      
+
       dataArrayRef.current.forEach((value, i) => {
         const x = i * (barWidth + gap);
         const barHeight = (value / 255) * (height * 0.7);
-        
-        const gradient = ctx.createLinearGradient(0, height / 2 - barHeight / 2, 0, height / 2 + barHeight / 2);
-        gradient.addColorStop(0, '#7ED957');
-        gradient.addColorStop(1, '#6bc348');
-        
-        ctx.fillStyle = gradient;
-        
-        ctx.beginPath();
-        ctx.roundRect(
-          x, 
+
+        const gradient = ctx.createLinearGradient(
+          0,
           height / 2 - barHeight / 2,
-          barWidth, 
-          barHeight,
-          3
+          0,
+          height / 2 + barHeight / 2
         );
+        gradient.addColorStop(0, "#7ED957");
+        gradient.addColorStop(1, "#6bc348");
+
+        ctx.fillStyle = gradient;
+
+        ctx.beginPath();
+        ctx.roundRect(x, height / 2 - barHeight / 2, barWidth, barHeight, 3);
         ctx.fill();
       });
-      
+
       animationFrameRef.current = requestAnimationFrame(draw);
     };
-    
+
     draw();
   };
 
@@ -304,7 +303,7 @@ const InfoPage = () => {
     } else {
       stopAudioVisualization();
     }
-    
+
     return () => {
       stopAudioVisualization();
     };
@@ -313,25 +312,84 @@ const InfoPage = () => {
   // Add this helper function at the component level
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
     });
   };
 
   // Modify the Select options to use actual transcript dates
-  const sessionOptions = transcripts.map(transcript => ({
+  const sessionOptions = transcripts.map((transcript) => ({
     value: transcript.date,
     label: new Date(transcript.date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
-      day: "numeric"
-    })
+      day: "numeric",
+    }),
   }));
 
   // Get the current transcript based on selected session
-  const currentTranscript = transcripts.find(t => t.date === selectedSession);
+  const currentTranscript = transcripts.find((t) => t.date === selectedSession);
+
+  const navigateToMatch = (index: number) => {
+    const matches = transcriptRef.current?.getElementsByTagName("mark");
+    if (!matches || matches.length === 0) return;
+
+    // Ensure index stays within bounds
+    const newIndex = Math.max(0, Math.min(index, matches.length - 1));
+    setCurrentMatchIndex(newIndex);
+
+    matches[newIndex].scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  };
+
+  const handleSearch = (searchValue: string) => {
+    if (!searchValue.trim()) {
+      setTotalMatches(0);
+      setCurrentMatchIndex(0);
+      return;
+    }
+
+    const transcriptDiv = transcriptRef.current;
+    if (!transcriptDiv) return;
+
+    // Clear previous highlights
+    const textElements =
+      transcriptDiv.getElementsByClassName("transcript-text");
+    for (const element of textElements) {
+      const originalText = element.getAttribute("data-original-text") || "";
+      if (originalText) {
+        element.textContent = originalText;
+      }
+    }
+
+    // Highlight matches and count them
+    let matchCount = 0;
+    for (const element of textElements) {
+      const text = element.textContent || "";
+      element.setAttribute("data-original-text", text);
+
+      if (text.toLowerCase().includes(searchValue.toLowerCase())) {
+        const regex = new RegExp(`(${searchValue})`, "gi");
+        element.innerHTML = text.replace(
+          regex,
+          '<mark class="bg-yellow-200">$1</mark>'
+        );
+        matchCount += (text.match(regex) || []).length;
+      }
+    }
+
+    setTotalMatches(matchCount);
+    setCurrentMatchIndex(matchCount > 0 ? 1 : 0);
+
+    // Navigate to first match
+    if (matchCount > 0) {
+      navigateToMatch(0);
+    }
+  };
 
   const navigateToMatch = (index: number) => {
     const matches = transcriptRef.current?.getElementsByTagName('mark');
@@ -420,6 +478,7 @@ const InfoPage = () => {
                   type="primary"
                   className="min-w-[120px]"
                   style={{ backgroundColor: "#7ED957" }}
+                  onClick={() => router.push("/calendar")}
                 >
                   Schedule
                 </Button>
@@ -448,7 +507,10 @@ const InfoPage = () => {
                     >
                       <Avatar
                         shape="square"
-                        src={selectedPatient?.picture || `${selectedPatient?.name.replace(/\s+/g, '')}.jpeg`}
+                        src={
+                          selectedPatient?.picture ||
+                          `${selectedPatient?.name.replace(/\s+/g, "")}.jpeg`
+                        }
                         icon={<UserOutlined />}
                         className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
                         style={{ position: "absolute" }}
@@ -459,27 +521,47 @@ const InfoPage = () => {
               >
                 <div className="space-y-4">
                   <div className="p-3 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer text-2xl">
-                    <Text strong className="text-2xl">Age: </Text>
-                    <Text className="text-2xl">{selectedPatient?.age} years old</Text>
+                    <Text strong className="text-2xl">
+                      Age:{" "}
+                    </Text>
+                    <Text className="text-2xl">
+                      {selectedPatient?.age} years old
+                    </Text>
                   </div>
                   <div className="p-3 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer text-2xl">
-                    <Text strong className="text-2xl">Client Since: </Text>
-                    <Text className="text-2xl">{selectedPatient?.client_since ? formatDate(selectedPatient.client_since) : ''}</Text>
+                    <Text strong className="text-2xl">
+                      Client Since:{" "}
+                    </Text>
+                    <Text className="text-2xl">
+                      {selectedPatient?.client_since
+                        ? formatDate(selectedPatient.client_since)
+                        : ""}
+                    </Text>
                   </div>
                   <div className="p-4 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer mt-4">
                     <div className="space-y-3 text-2xl">
                       <div>
-                        <Text strong className="text-2xl">About: </Text>
-                        <Text className="text-2xl">{selectedPatient?.about}</Text>
-                      </div>
-                      <div>
-                        <Text strong className="text-2xl">Triggers: </Text>
-                        <Text className="text-2xl">{selectedPatient?.triggers}</Text>
-                      </div>
-                      <div>
-                        <Text strong className="text-2xl">Medication: </Text>
+                        <Text strong className="text-2xl">
+                          About:{" "}
+                        </Text>
                         <Text className="text-2xl">
-                          {selectedPatient?.medication?.join(', ') || 'N/A'}
+                          {selectedPatient?.about}
+                        </Text>
+                      </div>
+                      <div>
+                        <Text strong className="text-2xl">
+                          Triggers:{" "}
+                        </Text>
+                        <Text className="text-2xl">
+                          {selectedPatient?.triggers}
+                        </Text>
+                      </div>
+                      <div>
+                        <Text strong className="text-2xl">
+                          Medication:{" "}
+                        </Text>
+                        <Text className="text-2xl">
+                          {selectedPatient?.medication?.join(", ") || "N/A"}
                         </Text>
                       </div>
                     </div>
@@ -489,22 +571,32 @@ const InfoPage = () => {
             </Col>
 
             {/* Right Column: Transcripts / Chatbot */}
-            <Col xs={24} md={isChatOpen ? 12 : 18} className="transition-all duration-300">
+            <Col
+              xs={24}
+              md={isChatOpen ? 12 : 18}
+              className="transition-all duration-300"
+            >
               {/* Session Summary Card */}
               <Card
                 title={
                   <span className="text-xl">
-                    Session on {new Date(selectedSession).toLocaleDateString("en-US", {
+                    Session on{" "}
+                    {new Date(selectedSession).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
-                      day: "numeric"
+                      day: "numeric",
                     })}
                   </span>
                 }
                 className="mb-6"
                 extra={
                   <Space>
-                    <Button type="primary" onClick={() => handleSearch(searchQuery)}>View Transcript</Button>
+                    <Button
+                      type="primary"
+                      onClick={() => handleSearch(searchQuery)}
+                    >
+                      View Transcript
+                    </Button>
                     <Select
                       value={selectedSession}
                       style={{ width: 200 }}
@@ -528,7 +620,8 @@ const InfoPage = () => {
                   <div>
                     <Title level={4}>Your Summary</Title>
                     <Text className="text-lg">
-                      {currentTranscript?.therapist_notes || "No therapist notes available"}
+                      {currentTranscript?.therapist_notes ||
+                        "No therapist notes available"}
                     </Text>
                   </div>
                 </div>
@@ -557,12 +650,16 @@ const InfoPage = () => {
                           <Button
                             icon="↑"
                             disabled={currentMatchIndex === 0}
-                            onClick={() => navigateToMatch(currentMatchIndex - 1)}
+                            onClick={() =>
+                              navigateToMatch(currentMatchIndex - 1)
+                            }
                           />
                           <Button
                             icon="↓"
                             disabled={currentMatchIndex === totalMatches - 1}
-                            onClick={() => navigateToMatch(currentMatchIndex + 1)}
+                            onClick={() =>
+                              navigateToMatch(currentMatchIndex + 1)
+                            }
                           />
                         </Space>
                       )}
@@ -572,20 +669,31 @@ const InfoPage = () => {
                 className="mb-6"
               >
                 <div className="max-h-[600px] overflow-y-auto pr-4">
-                  <Timeline 
+                  <Timeline
                     className="text-lg"
-                    items={currentTranscript?.transcript ? 
-                      currentTranscript.transcript.map((entry: { time: string; text: string }) => ({
-                        children: (
-                          <>
-                            <Text strong>{entry.time}</Text> —{" "}
-                            <Text className="transcript-text text-lg">{entry.text}</Text>
-                          </>
-                        )
-                      })) : 
-                      [{
-                        children: <Text className="text-lg">No transcript available</Text>
-                      }]
+                    items={
+                      currentTranscript?.transcript
+                        ? currentTranscript.transcript.map(
+                            (entry: { time: string; text: string }) => ({
+                              children: (
+                                <>
+                                  <Text strong>{entry.time}</Text> —{" "}
+                                  <Text className="transcript-text text-lg">
+                                    {entry.text}
+                                  </Text>
+                                </>
+                              ),
+                            })
+                          )
+                        : [
+                            {
+                              children: (
+                                <Text className="text-lg">
+                                  No transcript available
+                                </Text>
+                              ),
+                            },
+                          ]
                     }
                   />
                 </div>
@@ -595,7 +703,7 @@ const InfoPage = () => {
             {/* Chat Pane */}
             {isChatOpen && (
               <Col xs={24} md={6}>
-                <Realtime 
+                <Realtime
                   canvasRef={canvasRef}
                   onClose={() => setIsChatOpen(false)}
                 />
