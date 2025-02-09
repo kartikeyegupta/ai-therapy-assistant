@@ -23,7 +23,7 @@ const testimonials = [
       "Managing paperwork takes up 40% of my time that could be spent helping clients.",
     author: "Mark Thompson",
     role: "Licensed Therapist",
-    avatar: "/therapist1.png",
+    avatar: "/therapist3.png",
   },
   {
     id: 3,
@@ -31,7 +31,7 @@ const testimonials = [
       "Between sessions, notes, and admin work, I barely have time to properly prepare.",
     author: "Dr. Emily Chen",
     role: "Family Therapist",
-    avatar: "/therapist1.png",
+    avatar: "/therapist2.png",
   },
   {
     id: 4,
@@ -39,7 +39,7 @@ const testimonials = [
       "Documentation burnout is real. We need a better solution for mental health professionals.",
     author: "Dr. Michael Rivera",
     role: "Psychiatrist",
-    avatar: "/therapist1.png",
+    avatar: "/therapist4.jpg",
   },
 ];
 
