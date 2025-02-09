@@ -409,6 +409,11 @@ const CurrentPage = () => {
       <Header style={{ background: 'none', border: 'none' }} className="relative w-full z-50">
         <div className="w-full px-4 flex justify-between items-center h-full">
           <Space align="center" className="absolute left-8" size="middle">
+            <Link href="/">
+              <Button type="primary" size="large" className="text-lg px-8">
+                Back
+              </Button>
+            </Link>
             {/* ... existing logo code ... */}
           </Space>
           <Space className="absolute right-8">
