@@ -10,6 +10,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+interface TranscriptionSegment {
+  text: string;
+  time: string;
+}
+
 export async function transcribeAudio() {
   try {
     const audioPath = path.join(process.cwd(), 'public/audio/harvard.wav');
@@ -21,26 +26,29 @@ export async function transcribeAudio() {
       timestamp_granularities: ["segment"]
     });
 
-    // Print each segment with its timestamp
-    response.segments.forEach((segment) => {
-      const startTime = formatTimestamp(segment.start);
-      const endTime = formatTimestamp(segment.end);
-      console.log(`[${startTime} -> ${endTime}] ${segment.text}`);
+    // Convert segments to desired format with incrementing times
+    const startTime = new Date();
+    startTime.setHours(14, 32, 0); // Start at 14:32
+
+    const formattedSegments: TranscriptionSegment[] = response.segments.map((segment, index) => {
+      const segmentTime = new Date(startTime.getTime() + (index * 2 * 60 * 1000)); // Add 2 minutes per segment
+      const time = segmentTime.toTimeString().substring(0, 5); // Get HH:MM format
+      
+      return {
+        text: segment.text.trim(),
+        time: time
+      };
     });
 
-    return response;
+    // Print formatted JSON
+    console.log(JSON.stringify(formattedSegments, null, 2));
+
+    return formattedSegments;
     
   } catch (error) {
     console.error('Error during transcription:', error);
     throw error;
   }
-}
-
-// Helper function to format timestamps as MM:SS.mmm
-function formatTimestamp(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toFixed(3).padStart(6, '0')}`;
 }
 
 // For testing the transcription
