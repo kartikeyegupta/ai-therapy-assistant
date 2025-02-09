@@ -153,7 +153,7 @@ const Realtime = ({ canvasRef, onClose, selectedPatient }: RealtimeProps) => {
   }, [dataChannel, selectedPatient]);
 
   return (
-    <Card className="fixed right-10 bottom-8 w-[400px] max-h-[90vh] flex flex-col shadow-lg z-50">
+    <Card className="w-full max-h-[calc(100vh-120px)] flex flex-col shadow-lg">
       {/* Header - Fixed at top */}
       <div className="flex-none">
         <div className="flex justify-between items-center mb-4">
@@ -189,15 +189,20 @@ const Realtime = ({ canvasRef, onClose, selectedPatient }: RealtimeProps) => {
         )}
       </div>
 
-      {/* Waveform - Fixed at bottom */}
+      {/* Waveform and Recording Indicator - Fixed at bottom */}
       {isSessionActive && (
-        <div className="flex-none h-24">
+        <div className="flex-none h-24 relative">
           <canvas
             ref={canvasRef}
             className="w-full h-full"
             width={400}
             height={96}
           />
+          {/* Recording Indicator */}
+          <div className="absolute bottom-4 left-4 flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full bg-red-500 ${dataChannel ? 'animate-pulse' : ''}`} />
+            <span className="text-sm text-gray-600">Recording</span>
+          </div>
         </div>
       )}
     </Card>

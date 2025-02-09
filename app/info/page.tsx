@@ -412,9 +412,9 @@ const InfoPageContent = () => {
           <Row justify="space-between" align="middle" className="pl-[1%]">
             <Col>
               <img 
-                src="/logo.png" 
+                src="/logo-text.png" 
                 alt="Logo" 
-                className="h-20 object-contain cursor-pointer"
+                className="h-24 object-contain cursor-pointer"
                 onClick={() => router.push('/')}
               />
             </Col>
@@ -508,8 +508,7 @@ const InfoPageContent = () => {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
-                      hour: '2-digit',
-                      minute: '2-digit'
+                      ...(isChatOpen ? {} : { hour: '2-digit', minute: '2-digit' })
                     })}
                   </span>
                 }
@@ -621,11 +620,13 @@ const InfoPageContent = () => {
             {/* Chat Pane */}
             {isChatOpen && (
               <Col xs={24} md={6}>
-                <Realtime 
-                  canvasRef={canvasRef}
-                  onClose={() => setIsChatOpen(false)}
-                  selectedPatient={selectedPatient}
-                />
+                <div className="sticky top-4">
+                  <Realtime 
+                    canvasRef={canvasRef}
+                    onClose={() => setIsChatOpen(false)}
+                    selectedPatient={selectedPatient}
+                  />
+                </div>
               </Col>
             )}
           </Row>
