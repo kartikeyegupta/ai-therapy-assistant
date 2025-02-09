@@ -63,6 +63,7 @@ const features = [
 
 export default function Home() {
   const carouselRef = useRef<HTMLDivElement>(null);
+  const leavesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const carousel = carouselRef.current;
@@ -75,11 +76,40 @@ export default function Home() {
         `${animationDuration}s`
       );
     }
+
+    const leaves = leavesRef.current;
+    if (leaves) {
+      setTimeout(() => {
+        leaves.style.transition = 'opacity 1s ease-out';
+        leaves.style.opacity = '0';
+      }, 6000);
+      
+      setTimeout(() => {
+        leaves.style.display = 'none';
+      }, 7000);
+    }
   }, []);
 
   return (
     <Layout className="min-h-screen">
-      {/* Navigation Header */}
+      <div id="leaves" ref={leavesRef}>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+      </div>
+
       <Header
         style={{ background: "none", border: "none" }}
         className="absolute w-full z-10"
@@ -110,9 +140,7 @@ export default function Home() {
       </Header>
 
       <Content className="bg-green-50">
-        {/* Main Content Section */}
         <div className="max-w-7xl mx-auto px-4 py-16 pt-32">
-          {/* Hero Text */}
           <div className="text-center mb-12">
             <Title level={1} className="text-4xl md:text-5xl mb-6">
               Transform Your Therapy Practice
@@ -124,7 +152,6 @@ export default function Home() {
             </Paragraph>
           </div>
 
-          {/* Video Section */}
           <div className="mb-20">
             <div className="relative w-full max-w-4xl mx-auto bg-green-50 rounded-xl overflow-hidden">
               <iframe
@@ -138,7 +165,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* CTA Button */}
           <div className="text-center mb-20">
             <Link href="/current">
               <Button
@@ -151,7 +177,6 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Stats Section */}
           <div className="mb-20 text-center">
             <Text className="text-gray-600 text-2xl font-medium block mb-3">
               Therapists spend a staggering 49.2% of their workday on
@@ -162,7 +187,6 @@ export default function Home() {
             </Text>
           </div>
 
-          {/* Features Section */}
           <div className="py-12 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto mb-20">
             <Row gutter={24} justify="space-between">
               {features.map((feature, index) => (
@@ -185,7 +209,6 @@ export default function Home() {
             </Row>
           </div>
 
-          {/* Testimonials */}
           <div className="mb-20">
             <Title level={2} className="text-center mb-12">
               Leading Therepists Need Echo
@@ -226,8 +249,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-
-          {/* CTA Section */}
         </div>
       </Content>
       <Footer className="bg-white">
