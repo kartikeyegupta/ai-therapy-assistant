@@ -48,6 +48,9 @@ const InfoPage = () => {
   const supabase = createClientComponentClient<Database>()
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [totalMatches, setTotalMatches] = useState(0);
+  const transcriptRef = useRef<HTMLDivElement>(null);
 
   const today = new Date().toLocaleDateString("en-US", {
     year: "numeric",
@@ -330,15 +333,59 @@ const InfoPage = () => {
   // Get the current transcript based on selected session
   const currentTranscript = transcripts.find(t => t.date === selectedSession);
 
-  // Add function to filter transcript items
-  const getFilteredTranscript = () => {
-    if (!currentTranscript?.transcript || !searchQuery) {
-      return currentTranscript?.transcript;
+  const navigateToMatch = (index: number) => {
+    const matches = transcriptRef.current?.getElementsByTagName('mark');
+    if (!matches || matches.length === 0) return;
+
+    // Ensure index stays within bounds
+    const newIndex = Math.max(0, Math.min(index, matches.length - 1));
+    setCurrentMatchIndex(newIndex);
+
+    matches[newIndex].scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  };
+
+  const handleSearch = (searchValue: string) => {
+    if (!searchValue.trim()) {
+      setTotalMatches(0);
+      setCurrentMatchIndex(0);
+      return;
     }
     
-    return currentTranscript.transcript.filter((entry: { time: string; text: string }) => 
-      entry.text.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const transcriptDiv = transcriptRef.current;
+    if (!transcriptDiv) return;
+
+    // Clear previous highlights
+    const textElements = transcriptDiv.getElementsByClassName('transcript-text');
+    for (const element of textElements) {
+      const originalText = element.getAttribute('data-original-text') || '';
+      if (originalText) {
+        element.textContent = originalText;
+      }
+    }
+
+    // Highlight matches and count them
+    let matchCount = 0;
+    for (const element of textElements) {
+      const text = element.textContent || '';
+      element.setAttribute('data-original-text', text);
+      
+      if (text.toLowerCase().includes(searchValue.toLowerCase())) {
+        const regex = new RegExp(`(${searchValue})`, 'gi');
+        element.innerHTML = text.replace(regex, '<mark class="bg-yellow-200">$1</mark>');
+        matchCount += (text.match(regex) || []).length;
+      }
+    }
+
+    setTotalMatches(matchCount);
+    setCurrentMatchIndex(matchCount > 0 ? 1 : 0);
+    
+    // Navigate to first match
+    if (matchCount > 0) {
+      navigateToMatch(0);
+    }
   };
 
   return (
@@ -457,7 +504,7 @@ const InfoPage = () => {
                 className="mb-6"
                 extra={
                   <Space>
-                    <Button type="primary">View Transcript</Button>
+                    <Button type="primary" onClick={() => handleSearch(searchQuery)}>View Transcript</Button>
                     <Select
                       value={selectedSession}
                       style={{ width: 200 }}
@@ -489,6 +536,7 @@ const InfoPage = () => {
 
               {/* Chatbot Transcript Card */}
               <Card
+                ref={transcriptRef}
                 title={
                   <Row justify="space-between" align="middle">
                     <span className="text-xl">Transcript</span>
@@ -496,12 +544,28 @@ const InfoPage = () => {
                       <Input.Search
                         placeholder="Search transcript..."
                         allowClear
-                        onSearch={(value) => setSearchQuery(value)}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onSearch={handleSearch}
                         style={{ width: 300 }}
                         size="large"
                         className="text-lg"
                       />
+                      {totalMatches > 0 && (
+                        <Space>
+                          <Text className="text-gray-600">
+                            {currentMatchIndex + 1} of {totalMatches}
+                          </Text>
+                          <Button
+                            icon="↑"
+                            disabled={currentMatchIndex === 0}
+                            onClick={() => navigateToMatch(currentMatchIndex - 1)}
+                          />
+                          <Button
+                            icon="↓"
+                            disabled={currentMatchIndex === totalMatches - 1}
+                            onClick={() => navigateToMatch(currentMatchIndex + 1)}
+                          />
+                        </Space>
+                      )}
                     </Space>
                   </Row>
                 }
@@ -511,11 +575,11 @@ const InfoPage = () => {
                   <Timeline 
                     className="text-lg"
                     items={currentTranscript?.transcript ? 
-                      getFilteredTranscript()?.map((entry: { time: string; text: string }) => ({
+                      currentTranscript.transcript.map((entry: { time: string; text: string }) => ({
                         children: (
                           <>
                             <Text strong>{entry.time}</Text> —{" "}
-                            <Text className="text-lg">{entry.text}</Text>
+                            <Text className="transcript-text text-lg">{entry.text}</Text>
                           </>
                         )
                       })) : 
