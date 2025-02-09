@@ -23,7 +23,8 @@ import type { MenuProps } from "antd";
 import Wave from 'react-wavify'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
-import { Database } from '@/types/supabase'
+import { Database } from '@/app/types/supabase'
+import Realtime from '../realtime';
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -89,7 +90,7 @@ const InfoPage = () => {
 
       setTranscripts(data || []);
       // Set the most recent session date as default if available
-      if (data && data.length > 0) {
+      if (data && data.length > 0 && data[0].date) {
         setSelectedSession(data[0].date);
       }
     };
@@ -490,25 +491,10 @@ const InfoPage = () => {
             {/* Chat Pane */}
             {isChatOpen && (
               <Col xs={24} md={6}>
-                <Card className="h-full relative">
-                  <div className="flex justify-between items-center mb-4">
-                    <Title level={4}>Chat with Agent</Title>
-                    <Button type="text" onClick={() => setIsChatOpen(false)}>
-                      ✕
-                    </Button>
-                  </div>
-                  {/* Chat content will go here */}
-                  
-                  {/* Waveform */}
-                  <div className="absolute bottom-0 left-0 right-0 h-24">
-                    <canvas 
-                      ref={canvasRef}
-                      className="w-full h-full"
-                      width={400}
-                      height={96}
-                    />
-                  </div>
-                </Card>
+                <Realtime 
+                  canvasRef={canvasRef}
+                  onClose={() => setIsChatOpen(false)}
+                />
               </Col>
             )}
           </Row>
