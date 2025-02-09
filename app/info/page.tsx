@@ -17,12 +17,13 @@ import {
   Space,
   ConfigProvider,
   Dropdown,
+  Input,
 } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import Wave from 'react-wavify'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Database } from '@/app/types/supabase'
 import Realtime from '../realtime';
 
@@ -45,6 +46,11 @@ const InfoPage = () => {
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [transcripts, setTranscripts] = useState<any[]>([]);
   const supabase = createClientComponentClient<Database>()
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [totalMatches, setTotalMatches] = useState(0);
+  const transcriptRef = useRef<HTMLDivElement>(null);
 
   const today = new Date().toLocaleDateString("en-US", {
     year: "numeric",
@@ -64,10 +70,6 @@ const InfoPage = () => {
       }
 
       setPatients(data || [])
-      // Set first patient as default selected
-      if (data && data.length > 0) {
-        setSelectedPatient(data[0])
-      }
     }
 
     fetchPatients()
@@ -98,14 +100,35 @@ const InfoPage = () => {
     fetchTranscripts();
   }, [selectedPatient]);
 
-  const clientsMenu: MenuProps["items"] = patients.map((patient) => ({
-    key: patient.id,
+  useEffect(() => {
+    const patientId = searchParams.get('patient');
+    if (patientId) {
+      handlePatientChange(patientId);
+    }
+  }, [searchParams]);
+
+  const clientsMenu = patients.map((patient) => ({
+    value: patient.id,
     label: patient.name,
   }));
 
   const handlePatientChange = async (patientId: string) => {
-    const selected = patients.find(p => p.id === patientId);
-    setSelectedPatient(selected);
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('id', parseInt(patientId))
+        .single();
+
+      if (error) {
+        console.error('Error fetching patient details:', error);
+        return;
+      }
+
+      setSelectedPatient(data);
+    } catch (err) {
+      console.error('Error in handlePatientChange:', err);
+    }
   };
 
   const timelineItems = [
@@ -310,6 +333,61 @@ const InfoPage = () => {
   // Get the current transcript based on selected session
   const currentTranscript = transcripts.find(t => t.date === selectedSession);
 
+  const navigateToMatch = (index: number) => {
+    const matches = transcriptRef.current?.getElementsByTagName('mark');
+    if (!matches || matches.length === 0) return;
+
+    // Ensure index stays within bounds
+    const newIndex = Math.max(0, Math.min(index, matches.length - 1));
+    setCurrentMatchIndex(newIndex);
+
+    matches[newIndex].scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  };
+
+  const handleSearch = (searchValue: string) => {
+    if (!searchValue.trim()) {
+      setTotalMatches(0);
+      setCurrentMatchIndex(0);
+      return;
+    }
+    
+    const transcriptDiv = transcriptRef.current;
+    if (!transcriptDiv) return;
+
+    // Clear previous highlights
+    const textElements = transcriptDiv.getElementsByClassName('transcript-text');
+    for (const element of textElements) {
+      const originalText = element.getAttribute('data-original-text') || '';
+      if (originalText) {
+        element.textContent = originalText;
+      }
+    }
+
+    // Highlight matches and count them
+    let matchCount = 0;
+    for (const element of textElements) {
+      const text = element.textContent || '';
+      element.setAttribute('data-original-text', text);
+      
+      if (text.toLowerCase().includes(searchValue.toLowerCase())) {
+        const regex = new RegExp(`(${searchValue})`, 'gi');
+        element.innerHTML = text.replace(regex, '<mark class="bg-yellow-200">$1</mark>');
+        matchCount += (text.match(regex) || []).length;
+      }
+    }
+
+    setTotalMatches(matchCount);
+    setCurrentMatchIndex(matchCount > 0 ? 1 : 0);
+    
+    // Navigate to first match
+    if (matchCount > 0) {
+      navigateToMatch(0);
+    }
+  };
+
   return (
     <ConfigProvider
       theme={{
@@ -331,17 +409,13 @@ const InfoPage = () => {
             </Col>
             <Col>
               <Space size="middle">
-                <Dropdown 
-                  menu={{ 
-                    items: clientsMenu,
-                    onClick: ({ key }) => handlePatientChange(key)
-                  }} 
-                  placement="bottomRight"
-                >
-                  <Button type="primary" className="min-w-[120px]" style={{ backgroundColor: "#7ED957" }}>
-                    Clients
-                  </Button>
-                </Dropdown>
+                <Select 
+                  placeholder="Clients"
+                  style={{ width: 200 }}
+                  options={clientsMenu}
+                  onChange={handlePatientChange}
+                  value={selectedPatient?.id}
+                />
                 <Button
                   type="primary"
                   className="min-w-[120px]"
@@ -430,7 +504,7 @@ const InfoPage = () => {
                 className="mb-6"
                 extra={
                   <Space>
-                    <Button type="primary">View Transcript</Button>
+                    <Button type="primary" onClick={() => handleSearch(searchQuery)}>View Transcript</Button>
                     <Select
                       value={selectedSession}
                       style={{ width: 200 }}
@@ -462,8 +536,38 @@ const InfoPage = () => {
 
               {/* Chatbot Transcript Card */}
               <Card
+                ref={transcriptRef}
                 title={
-                  <span className="text-xl">Transcript</span>
+                  <Row justify="space-between" align="middle">
+                    <span className="text-xl">Transcript</span>
+                    <Space>
+                      <Input.Search
+                        placeholder="Search transcript..."
+                        allowClear
+                        onSearch={handleSearch}
+                        style={{ width: 300 }}
+                        size="large"
+                        className="text-lg"
+                      />
+                      {totalMatches > 0 && (
+                        <Space>
+                          <Text className="text-gray-600">
+                            {currentMatchIndex + 1} of {totalMatches}
+                          </Text>
+                          <Button
+                            icon="↑"
+                            disabled={currentMatchIndex === 0}
+                            onClick={() => navigateToMatch(currentMatchIndex - 1)}
+                          />
+                          <Button
+                            icon="↓"
+                            disabled={currentMatchIndex === totalMatches - 1}
+                            onClick={() => navigateToMatch(currentMatchIndex + 1)}
+                          />
+                        </Space>
+                      )}
+                    </Space>
+                  </Row>
                 }
                 className="mb-6"
               >
@@ -475,7 +579,7 @@ const InfoPage = () => {
                         children: (
                           <>
                             <Text strong>{entry.time}</Text> —{" "}
-                            <Text className="text-lg">{entry.text}</Text>
+                            <Text className="transcript-text text-lg">{entry.text}</Text>
                           </>
                         )
                       })) : 
