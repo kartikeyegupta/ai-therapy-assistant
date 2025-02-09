@@ -31,6 +31,7 @@ const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
 const InfoPage = () => {
+  const router = useRouter();
   const [selectedSession, setSelectedSession] = useState("2024-01-21");
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [waveAmplitude, setWaveAmplitude] = useState(20);
@@ -228,8 +229,8 @@ const InfoPage = () => {
 
   const stopAudioVisualization = () => {
     setIsListening(false);
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
+    if (audioContextRef.current?.state !== 'closed') {
+      audioContextRef.current?.close();
     }
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -320,13 +321,15 @@ const InfoPage = () => {
     });
   };
 
-  // Modify the Select options to use actual transcript dates
+  // Modify the Select options to include time
   const sessionOptions = transcripts.map(transcript => ({
     value: transcript.date,
     label: new Date(transcript.date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
-      day: "numeric"
+      day: "numeric",
+      hour: '2-digit',
+      minute: '2-digit'
     })
   }));
 
@@ -420,6 +423,7 @@ const InfoPage = () => {
                   type="primary"
                   className="min-w-[120px]"
                   style={{ backgroundColor: "#7ED957" }}
+                  onClick={() => router.push('/calendar')}
                 >
                   Schedule
                 </Button>
@@ -497,19 +501,30 @@ const InfoPage = () => {
                     Session on {new Date(selectedSession).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
-                      day: "numeric"
+                      day: "numeric",
+                      hour: '2-digit',
+                      minute: '2-digit'
                     })}
                   </span>
                 }
                 className="mb-6"
                 extra={
                   <Space>
-                    <Button type="primary" onClick={() => handleSearch(searchQuery)}>View Transcript</Button>
+                    <Button 
+                      type="primary" 
+                      onClick={() => {
+                        handleSearch('');
+                        transcriptRef.current?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      View Transcript
+                    </Button>
                     <Select
                       value={selectedSession}
-                      style={{ width: 200 }}
+                      style={{ width: 300 }}
                       options={sessionOptions}
                       className="text-lg"
+                      size="large"
                       onChange={(value) => setSelectedSession(value)}
                     />
                   </Space>
