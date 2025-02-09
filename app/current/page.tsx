@@ -6,12 +6,24 @@ import { AudioOutlined, LoadingOutlined } from '@ant-design/icons';
 import '@ant-design/v5-patch-for-react-19';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Realtime from '../realtime';
+import { getPatientContext } from '../../lib/patient-context';
 
 const { Content, Header } = Layout;
 
 interface Patient {
   value: number;
   label: string;
+}
+
+interface PatientContext {
+  id: number;
+  name: string;
+  visitDates: string[];
+  lastSessionSummary?: string;
+  clientSince?: string;
+  triggers?: string[];
+  notes?: string;
 }
 
 const CurrentPage = () => {
@@ -38,6 +50,8 @@ const CurrentPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState(0);
   const [processingMessage, setProcessingMessage] = useState('');
+  const [showChat, setShowChat] = useState(false);
+  const [patientContext, setPatientContext] = useState<PatientContext | null>(null);
 
   const startRecording = async () => {
     if (!selectedPatientId) {
@@ -377,6 +391,18 @@ const CurrentPage = () => {
   useEffect(() => {
     console.log('Current patients state:', patients);
   }, [patients]);
+
+  useEffect(() => {
+    // For demo, fetch context for patient ID 1234
+    // In production, this would come from your session/route params
+    async function fetchContext() {
+      const context = await getPatientContext(1234);
+      if (context) {
+        setPatientContext(context);
+      }
+    }
+    fetchContext();
+  }, []);
 
   return (
     <Layout className="min-h-screen relative overflow-hidden bg-white">

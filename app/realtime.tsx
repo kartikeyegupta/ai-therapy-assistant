@@ -8,6 +8,7 @@ const { Title } = Typography;
 interface RealtimeProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
   onClose: () => void;
+  selectedPatient?: any;
 }
 
 interface Message {
@@ -15,7 +16,7 @@ interface Message {
   text: string;
 }
 
-const Realtime = ({ canvasRef, onClose }: RealtimeProps) => {
+const Realtime = ({ canvasRef, onClose, selectedPatient }: RealtimeProps) => {
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
@@ -28,7 +29,8 @@ const Realtime = ({ canvasRef, onClose }: RealtimeProps) => {
 
     try {
       // 1) Get ephemeral token from your server
-      const tokenResp = await fetch("http://localhost:3000/token");
+      const tokenResp = await fetch("http://localhost:3000/api/get-ephemeral?patientId=" + selectedPatient?.id);
+      console.log("tokenResp", tokenResp);
       if (!tokenResp.ok) throw new Error("Failed to get ephemeral token");
       const sessionData = await tokenResp.json();
       const ephemeralKey = sessionData.client_secret.value;
@@ -85,75 +87,6 @@ const Realtime = ({ canvasRef, onClose }: RealtimeProps) => {
     setIsSessionActive(false);
   }
 
-  function handleFunctionCall(name: string, argStr: string) {
-    let args = {};
-    try {
-      args = JSON.parse(argStr);
-    } catch {}
-    console.log(`[FunctionCall] ${name} =>`, args);
-
-    // Show it in the transcript
-    setMessages((prev) => [
-      ...prev,
-      { speaker: "Function", text: `Called ${name}(${JSON.stringify(args)})` },
-    ]);
-
-    // Placeholder results
-    let result = "";
-    switch (name) {
-      case "getPatientSummary":
-        result = `#summary for patient ${(args as any).patientId} on ${(args as any).date}`;
-        break;
-      case "getClientSince":
-        result = `#patient ${(args as any).patientId} joined on 2022-10-10 (placeholder)`;
-        break;
-      case "getTranscriptQuotes":
-        result = `#quotes for patient ${(args as any).patientId}, query="${(args as any).query}"${
-          (args as any).date ? `, date=${(args as any).date}` : ""
-        }`;
-        break;
-      default:
-        result = "#unknown function???";
-    }
-
-    // Show function result in the transcript too
-    setMessages((prev) => [
-      ...prev,
-      { speaker: "Function", text: `Result: ${result}` },
-    ]);
-
-    // Send function_call_result to the model
-    const fnEvent = {
-      type: "conversation.item.create",
-      item: {
-        type: "function_call_result",
-        role: "function",
-        name,
-        content: [
-          {
-            type: "function_result",
-            text: JSON.stringify({ result }),
-          },
-        ],
-      },
-    };
-    if (dataChannel) {
-      dataChannel.send(JSON.stringify(fnEvent));
-
-      // Ask the model to continue responding after the function
-      setTimeout(() => {
-        dataChannel.send(
-          JSON.stringify({
-            type: "response.create",
-            response: {
-              instructions: "Please continue with your response.",
-            },
-          })
-        );
-      }, 500);
-    }
-  }
-
   useEffect(() => {
     if (!dataChannel) return;
 
@@ -167,53 +100,11 @@ const Realtime = ({ canvasRef, onClose }: RealtimeProps) => {
         session: {
           turn_detection: {
             type: "server_vad",
-            threshold: 0.5,
-            prefix_padding_ms: 300,
-            silence_duration_ms: 800,
+            threshold: 0.5,           // Increased from 0.2
+            prefix_padding_ms: 300,   // Increased from 20
+            silence_duration_ms: 800, // Increased from 20
             create_response: true,
           },
-          tools: [
-            {
-              type: "function",
-              name: "getPatientSummary",
-              description: "Retrieve a summary for a patient on a given date.",
-              parameters: {
-                type: "object",
-                properties: {
-                  patientId: { type: "number" },
-                  date: { type: "string" },
-                },
-                required: ["patientId", "date"],
-              },
-            },
-            {
-              type: "function",
-              name: "getClientSince",
-              description: "Get the date a patient first joined the clinic.",
-              parameters: {
-                type: "object",
-                properties: {
-                  patientId: { type: "number" },
-                },
-                required: ["patientId"],
-              },
-            },
-            {
-              type: "function",
-              name: "getTranscriptQuotes",
-              description: "Retrieve quotes from transcripts for a query.",
-              parameters: {
-                type: "object",
-                properties: {
-                  patientId: { type: "number" },
-                  query: { type: "string" },
-                  date: { type: "string" },
-                },
-                required: ["patientId", "query"],
-              },
-            },
-          ],
-          tool_choice: "auto",
         },
       };
       dataChannel?.send(JSON.stringify(sessionUpdate));
@@ -250,15 +141,6 @@ const Realtime = ({ canvasRef, onClose }: RealtimeProps) => {
           ]);
         }
       }
-
-      // C) On response.done, check for function calls
-      if (evt.type === "response.done" && evt.response?.output) {
-        evt.response.output.forEach((item: any) => {
-          if (item.type === "function_call") {
-            handleFunctionCall(item.name, item.arguments);
-          }
-        });
-      }
     }
 
     dataChannel.addEventListener("open", handleOpen);
@@ -268,7 +150,7 @@ const Realtime = ({ canvasRef, onClose }: RealtimeProps) => {
       dataChannel.removeEventListener("open", handleOpen);
       dataChannel.removeEventListener("message", handleMessage);
     };
-  }, [dataChannel]);
+  }, [dataChannel, selectedPatient]);
 
   return (
     <Card className="fixed right-10 bottom-8 w-[400px] max-h-[90vh] flex flex-col shadow-lg z-50">
@@ -306,11 +188,11 @@ const Realtime = ({ canvasRef, onClose }: RealtimeProps) => {
           ))
         )}
       </div>
-      
+
       {/* Waveform - Fixed at bottom */}
       {isSessionActive && (
         <div className="flex-none h-24">
-          <canvas 
+          <canvas
             ref={canvasRef}
             className="w-full h-full"
             width={400}

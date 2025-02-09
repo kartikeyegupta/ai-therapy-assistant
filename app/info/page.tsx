@@ -613,6 +613,7 @@ const InfoPage = () => {
                 <Realtime 
                   canvasRef={canvasRef}
                   onClose={() => setIsChatOpen(false)}
+                  selectedPatient={selectedPatient}
                 />
               </Col>
             )}
