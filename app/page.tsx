@@ -3,6 +3,7 @@ import React, { useRef, useEffect } from "react";
 import { Button, Typography, Card, Row, Col, Space, Layout } from "antd";
 import Link from "next/link";
 import "@ant-design/v5-patch-for-react-19";
+import { StarOutlined, ClockCircleOutlined, MessageOutlined } from "@ant-design/icons";
 
 const { Title, Paragraph, Text } = Typography;
 const { Header, Footer, Content } = Layout;
@@ -39,6 +40,24 @@ const testimonials = [
     author: "Dr. Michael Rivera",
     role: "Psychiatrist",
     avatar: "/therapist1.png",
+  },
+];
+
+const features = [
+  {
+    icon: <StarOutlined className="text-2xl" />,
+    title: "AI-Powered Notes",
+    description: "Automatically generate comprehensive session notes using advanced AI technology.",
+  },
+  {
+    icon: <ClockCircleOutlined className="text-2xl" />,
+    title: "Save Time",
+    description: "Reduce administrative work by hours each week with automated documentation.",
+  },
+  {
+    icon: <MessageOutlined className="text-2xl" />,
+    title: "Real-Time Chat",
+    description: "Engage in real-time conversations to better understand patients and their conditions.",
   },
 ];
 
@@ -141,6 +160,29 @@ export default function Home() {
             <Text className="text-gray-600 text-xl">
               Echo helps therapists focus on their clients not on paperwork
             </Text>
+          </div>
+
+          {/* Features Section */}
+          <div className="py-12 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto mb-20">
+            <Row gutter={24} justify="space-between">
+              {features.map((feature, index) => (
+                <Col key={index} xs={24} md={8} className="mb-8 md:mb-0">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center text-green-600 mb-5">
+                      <div className="text-3xl">
+                        {feature.icon}
+                      </div>
+                    </div>
+                    <Title level={3} className="!text-2xl !mb-3 !text-gray-800">
+                      {feature.title}
+                    </Title>
+                    <Text className="text-gray-600 text-lg leading-relaxed max-w-sm">
+                      {feature.description}
+                    </Text>
+                  </div>
+                </Col>
+              ))}
+            </Row>
           </div>
 
           {/* Testimonials */}
