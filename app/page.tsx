@@ -1,14 +1,6 @@
 "use client";
 import React, { useRef, useEffect } from "react";
-import {
-  Button,
-  Typography,
-  Card,
-  Row,
-  Col,
-  Space,
-  Layout,
-} from "antd";
+import { Button, Typography, Card, Row, Col, Space, Layout } from "antd";
 import Link from "next/link";
 import "@ant-design/v5-patch-for-react-19";
 
@@ -18,23 +10,34 @@ const { Header, Footer, Content } = Layout;
 const testimonials = [
   {
     id: 1,
-    comment: "Echo saves me 5+ hours every week on documentation.",
+    comment:
+      "I spend 3+ hours daily on EHR documentation instead of focusing on my patients.",
     author: "Dr. Sarah Johnson",
     role: "Clinical Psychologist",
     avatar: "/therapist1.png",
   },
   {
     id: 2,
-    comment: "The AI insights help me provide better care.",
+    comment:
+      "Managing paperwork takes up 40% of my time that could be spent helping clients.",
     author: "Mark Thompson",
     role: "Licensed Therapist",
     avatar: "/therapist1.png",
   },
   {
     id: 3,
-    comment: "Finally, I can be fully present during sessions.",
+    comment:
+      "Between sessions, notes, and admin work, I barely have time to properly prepare.",
     author: "Dr. Emily Chen",
     role: "Family Therapist",
+    avatar: "/therapist1.png",
+  },
+  {
+    id: 4,
+    comment:
+      "Documentation burnout is real. We need a better solution for mental health professionals.",
+    author: "Dr. Michael Rivera",
+    role: "Psychiatrist",
     avatar: "/therapist1.png",
   },
 ];
@@ -48,26 +51,38 @@ export default function Home() {
       const scrollWidth = carousel.scrollWidth;
       const animationDuration = scrollWidth / 50;
       carousel.style.setProperty("--scroll-width", `${scrollWidth}px`);
-      carousel.style.setProperty("--animation-duration", `${animationDuration}s`);
+      carousel.style.setProperty(
+        "--animation-duration",
+        `${animationDuration}s`
+      );
     }
   }, []);
 
   return (
     <Layout className="min-h-screen">
       {/* Navigation Header */}
-      <Header style={{ background: 'none', border: 'none' }} className="absolute w-full z-10">
+      <Header
+        style={{ background: "none", border: "none" }}
+        className="absolute w-full z-10"
+      >
         <div className="w-full px-4 flex justify-between items-center h-full">
           <Space align="center" className="absolute left-8" size="middle">
-            <img 
-              src="/logo.png" 
-              alt="Echo Logo" 
-              className="h-12 w-12 object-contain"
+            <img
+              src="/logo.png"
+              alt="Echo Logo"
+              className="h-16 w-16 object-contain"
             />
-            <Text strong className="text-3xl text-green-700">Echo</Text>
+            <Text strong className="text-3xl text-green-700">
+              Echo
+            </Text>
           </Space>
           <Space className="absolute right-8">
             <Link href="/current">
-              <Button type="primary" size="large" className="text-lg px-8">
+              <Button
+                type="primary"
+                size="large"
+                className="text-xl px-12 py-6 h-auto font-semibold hover:scale-105 transition-transform"
+              >
                 Try Echo
               </Button>
             </Link>
@@ -84,9 +99,9 @@ export default function Home() {
               Transform Your Therapy Practice
             </Title>
             <Paragraph className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Echo helps therapists focus on their clients. Our AI-powered platform automates 
-              note-taking and provides insights, saving you hours each week while improving 
-              documentation quality.
+              Echo helps therapists focus on their clients. Our AI-powered
+              platform automates note-taking and provides insights, saving you
+              hours each week while improving documentation quality.
             </Paragraph>
           </div>
 
@@ -104,64 +119,78 @@ export default function Home() {
             </div>
           </div>
 
+          {/* CTA Button */}
+          <div className="text-center mb-20">
+            <Link href="/try-now">
+              <Button
+                type="primary"
+                size="large"
+                className="text-xl px-12 py-6 h-auto font-semibold hover:scale-105 transition-transform"
+              >
+                Try Echo Now
+              </Button>
+            </Link>
+          </div>
+
           {/* Stats Section */}
           <div className="mb-20 text-center">
             <Text className="text-gray-600 text-2xl font-medium block mb-3">
-              Trusted by thousands of mental health professionals across the globe
+              Therapists spend a staggering 49.2% of their workday on
+              documentation
             </Text>
             <Text className="text-gray-600 text-xl">
-              Join the community of therapists who save 5+ hours every week with Echo
+              Echo helps therapists focus on their clients not on paperwork
             </Text>
           </div>
 
           {/* Testimonials */}
           <div className="mb-20">
             <Title level={2} className="text-center mb-12">
-              Trusted by Leading Therapists
+              Leading Therepists Need Echo
             </Title>
             <div className="carouselContainer">
               <div className="fadeLeft" />
               <div className="fadeRight" />
               <div className="carousel" ref={carouselRef}>
                 <div className="carouselTrack">
-                  {[...testimonials, ...testimonials].map((testimonial, index) => (
-                    <Card 
-                      key={`${testimonial.id}-${index}`} 
-                      className="feedbackCard"
-                    >
-                      <div className="flex items-start space-x-4 p-4">
-                        <img 
-                          src={testimonial.avatar} 
-                          alt={testimonial.author}
-                          className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                        />
-                        <div>
-                          <Paragraph className="text-base mb-2 font-medium">
-                            "{testimonial.comment}"
-                          </Paragraph>
-                          <Text strong className="block text-sm">{testimonial.author}</Text>
-                          <Text type="secondary" className="text-xs">{testimonial.role}</Text>
+                  {[...testimonials, ...testimonials].map(
+                    (testimonial, index) => (
+                      <Card
+                        key={`${testimonial.id}-${index}`}
+                        className="feedbackCard"
+                      >
+                        <div className="flex items-start space-x-4 p-4">
+                          <img
+                            src={testimonial.avatar}
+                            alt={testimonial.author}
+                            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                          />
+                          <div>
+                            <Paragraph className="text-base mb-2 font-medium">
+                              "{testimonial.comment}"
+                            </Paragraph>
+                            <Text strong className="block text-sm">
+                              {testimonial.author}
+                            </Text>
+                            <Text type="secondary" className="text-xs">
+                              {testimonial.role}
+                            </Text>
+                          </div>
                         </div>
-                      </div>
-                    </Card>
-                  ))}
+                      </Card>
+                    )
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
           {/* CTA Section */}
-          <div className="text-center">
-            <Button type="primary" size="large" className="px-8">
-              Start Free Trial
-            </Button>
-          </div>
         </div>
       </Content>
-
       <Footer className="bg-white">
         <div className="max-w-7xl mx-auto text-center">
-          <Text type="secondary">© 2024 Echo. All rights reserved.</Text>
+          <Text type="secondary">© 2025 Echo. All rights reserved.</Text>
         </div>
       </Footer>
     </Layout>
