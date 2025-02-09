@@ -140,7 +140,7 @@ export default function Home() {
 
           {/* CTA Button */}
           <div className="text-center mb-20">
-            <Link href="/try-now">
+            <Link href="/current">
               <Button
                 type="primary"
                 size="large"
