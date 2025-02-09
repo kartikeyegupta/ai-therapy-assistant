@@ -1,7 +1,7 @@
 "use client";
 
 import '@ant-design/v5-patch-for-react-19';
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import {
   Layout,
   Menu,
@@ -30,7 +30,7 @@ import Realtime from '../realtime';
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
-const InfoPage = () => {
+const InfoPageContent = () => {
   const router = useRouter();
   const [selectedSession, setSelectedSession] = useState("2024-01-21");
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -634,6 +634,14 @@ const InfoPage = () => {
         )}
       </Layout>
     </ConfigProvider>
+  );
+};
+
+const InfoPage = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <InfoPageContent />
+    </Suspense>
   );
 };
 
