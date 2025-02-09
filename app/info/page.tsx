@@ -68,12 +68,8 @@ const InfoPage = () => {
         return;
       }
 
-      setPatients(data || []);
-      // Set first patient as default selected
-      if (data && data.length > 0) {
-        setSelectedPatient(data[0]);
-      }
-    };
+      setPatients(data || [])
+    }
 
     fetchPatients();
   }, []);
@@ -104,7 +100,7 @@ const InfoPage = () => {
   }, [selectedPatient]);
 
   useEffect(() => {
-    const patientId = searchParams.get("patient");
+    const patientId = searchParams.get('patient');
     if (patientId) {
       handlePatientChange(patientId);
     }
@@ -118,13 +114,13 @@ const InfoPage = () => {
   const handlePatientChange = async (patientId: string) => {
     try {
       const { data, error } = await supabase
-        .from("patients")
-        .select("*")
-        .eq("id", parseInt(patientId))
+        .from('patients')
+        .select('*')
+        .eq('id', parseInt(patientId))
         .single();
 
       if (error) {
-        console.error("Error fetching patient details:", error);
+        console.error('Error fetching patient details:', error);
         return;
       }
 
@@ -395,6 +391,61 @@ const InfoPage = () => {
     }
   };
 
+  const navigateToMatch = (index: number) => {
+    const matches = transcriptRef.current?.getElementsByTagName('mark');
+    if (!matches || matches.length === 0) return;
+
+    // Ensure index stays within bounds
+    const newIndex = Math.max(0, Math.min(index, matches.length - 1));
+    setCurrentMatchIndex(newIndex);
+
+    matches[newIndex].scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  };
+
+  const handleSearch = (searchValue: string) => {
+    if (!searchValue.trim()) {
+      setTotalMatches(0);
+      setCurrentMatchIndex(0);
+      return;
+    }
+    
+    const transcriptDiv = transcriptRef.current;
+    if (!transcriptDiv) return;
+
+    // Clear previous highlights
+    const textElements = transcriptDiv.getElementsByClassName('transcript-text');
+    for (const element of textElements) {
+      const originalText = element.getAttribute('data-original-text') || '';
+      if (originalText) {
+        element.textContent = originalText;
+      }
+    }
+
+    // Highlight matches and count them
+    let matchCount = 0;
+    for (const element of textElements) {
+      const text = element.textContent || '';
+      element.setAttribute('data-original-text', text);
+      
+      if (text.toLowerCase().includes(searchValue.toLowerCase())) {
+        const regex = new RegExp(`(${searchValue})`, 'gi');
+        element.innerHTML = text.replace(regex, '<mark class="bg-yellow-200">$1</mark>');
+        matchCount += (text.match(regex) || []).length;
+      }
+    }
+
+    setTotalMatches(matchCount);
+    setCurrentMatchIndex(matchCount > 0 ? 1 : 0);
+    
+    // Navigate to first match
+    if (matchCount > 0) {
+      navigateToMatch(0);
+    }
+  };
+
   return (
     <ConfigProvider
       theme={{
@@ -416,7 +467,7 @@ const InfoPage = () => {
             </Col>
             <Col>
               <Space size="middle">
-                <Select
+                <Select 
                   placeholder="Clients"
                   style={{ width: 200 }}
                   options={clientsMenu}
