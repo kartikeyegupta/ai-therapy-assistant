@@ -69,7 +69,7 @@ const WeeklyMonthlyCalendar: React.FC = () => {
     setView(value);
   };
 
-  const cellRender = (current: Dayjs, info: { type: 'date' | 'month' }) => {
+  const cellRender = (current: Dayjs, info: any) => {
     if (info.type !== 'date') return null;
     
     const formattedDate = current.format("YYYY-MM-DD");
@@ -103,7 +103,7 @@ const WeeklyMonthlyCalendar: React.FC = () => {
             key={index}
             title={day.format("dddd, MMM D")}
             className="h-full overflow-auto"
-            bodyStyle={{ padding: "12px" }}
+            styles={{ body: { padding: "12px" } }}
           >
             {cellRender(day, { type: 'date' })}
           </Card>
