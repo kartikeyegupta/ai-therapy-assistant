@@ -154,14 +154,11 @@ export default function Home() {
 
           <div className="mb-20">
             <div className="relative w-full max-w-4xl mx-auto bg-green-50 rounded-xl overflow-hidden">
-              <iframe
-                className="w-full aspect-video"
-                src="https://www.youtube.com/embed/AyvebPNWHtU"
-                title="Echo Demo Video"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
+              <img
+                src="/image.png"
+                alt="Echo Demo"
+                className="w-full aspect-video object-cover"
+              />
             </div>
           </div>
 
