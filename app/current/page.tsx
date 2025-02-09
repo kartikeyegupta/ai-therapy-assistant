@@ -8,6 +8,11 @@ import Link from 'next/link';
 
 const { Content, Header } = Layout;
 
+interface Patient {
+  value: number;
+  label: string;
+}
+
 const CurrentPage = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -26,7 +31,7 @@ const CurrentPage = () => {
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const [therapistNotes, setTherapistNotes] = useState('');
-  const [patients, setPatients] = useState([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
 
   const startRecording = async () => {
     try {
@@ -290,24 +295,39 @@ const CurrentPage = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
+        console.log('Frontend: Fetching patients...');
         const response = await fetch('/api/patients');
+        console.log('Frontend: Response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch patients');
+        }
+        
         const data = await response.json();
-        const formattedPatients = data.map((patient: { id: string; name: string }) => ({
-          value: patient.id,
-          label: patient.name
-        }));
-        setPatients(formattedPatients);
+        console.log('Frontend: Received data:', data);
+        
+        if (Array.isArray(data)) {
+          setPatients(data);
+          console.log('Frontend: Updated patients state:', data);
+        } else {
+          console.error('Frontend: Received non-array data:', data);
+        }
       } catch (error) {
-        console.error('Error fetching patients:', error);
+        console.error('Frontend: Error fetching patients:', error);
       }
     };
 
     fetchPatients();
   }, []);
 
+  // Log whenever patients state changes
+  useEffect(() => {
+    console.log('Current patients state:', patients);
+  }, [patients]);
+
   return (
     <Layout className="min-h-screen relative overflow-hidden bg-white">
-      <Header style={{ background: 'none', border: 'none' }} className="absolute w-full z-10">
+      <Header style={{ background: 'none', border: 'none' }} className="relative w-full z-50">
         <div className="w-full px-4 flex justify-between items-center h-full">
           <Space align="center" className="absolute left-8" size="middle">
             {/* ... existing logo code ... */}
@@ -318,6 +338,11 @@ const CurrentPage = () => {
               style={{ width: 200 }}
               options={patients}
               className="mr-4"
+              onChange={(value) => {
+                console.log('Selected client:', value);
+                const selected = patients.find(p => p.value === value);
+                console.log('Found patient:', selected);
+              }}
             />
             <Link href="/info">
               <Button type="primary" size="large" className="text-lg px-8">
@@ -328,7 +353,7 @@ const CurrentPage = () => {
         </div>
       </Header>
 
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 z-0">
         {/* Interactive background with moving dots */}
         <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
           <div id="particles-background" className="absolute inset-0"></div>
