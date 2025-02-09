@@ -71,6 +71,11 @@ const InfoPageContent = () => {
       }
 
       setPatients(data || [])
+      
+      // If there are patients and no patient is currently selected, select the first one
+      if (data && data.length > 0 && !selectedPatient) {
+        handlePatientChange(data[0].id.toString())
+      }
     }
 
     fetchPatients()
@@ -409,7 +414,8 @@ const InfoPageContent = () => {
               <img 
                 src="/logo.png" 
                 alt="Logo" 
-                className="h-20 object-contain"
+                className="h-20 object-contain cursor-pointer"
+                onClick={() => router.push('/')}
               />
             </Col>
             <Col>
@@ -440,54 +446,56 @@ const InfoPageContent = () => {
           <Row gutter={24}>
             {/* Left Column: Patient Info */}
             <Col xs={24} md={6}>
-              <Card
-                className="mb-6 bg-white shadow-sm"
-                cover={
-                  <div className="px-4 pt-4">
-                    <div className="relative w-32 h-32 mx-auto">
-                      <Avatar
-                        shape="square"
-                        src={selectedPatient?.picture || `${selectedPatient?.name.replace(/\s+/g, '')}.jpeg`}
-                        icon={<UserOutlined />}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    </div>
-                  </div>
-                }
-              >
-                <div className="space-y-3">
-                  <div className="p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
-                    <Text strong className="text-lg">Name: </Text>
-                    <Text className="text-lg">{selectedPatient?.name}</Text>
-                  </div>
-                  <div className="p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
-                    <Text strong className="text-lg">Age: </Text>
-                    <Text className="text-lg">{selectedPatient?.age} years old</Text>
-                  </div>
-                  <div className="p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
-                    <Text strong className="text-lg">Client Since: </Text>
-                    <Text className="text-lg">{selectedPatient?.client_since ? formatDate(selectedPatient.client_since) : ''}</Text>
-                  </div>
-                  <div className="p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
-                    <div className="space-y-2">
-                      <div>
-                        <Text strong className="text-lg block mb-1">About</Text>
-                        <Text className="text-base text-gray-600">{selectedPatient?.about}</Text>
-                      </div>
-                      <div>
-                        <Text strong className="text-lg block mb-1">Triggers</Text>
-                        <Text className="text-base text-gray-600">{selectedPatient?.triggers}</Text>
-                      </div>
-                      <div>
-                        <Text strong className="text-lg block mb-1">Medication</Text>
-                        <Text className="text-base text-gray-600">
-                          {selectedPatient?.medication?.join(', ') || 'N/A'}
-                        </Text>
+              <div className="sticky top-4">
+                <Card
+                  className="mb-6 bg-white shadow-sm"
+                  cover={
+                    <div className="px-4 pt-4">
+                      <div className="relative w-32 h-32 mx-auto">
+                        <Avatar
+                          shape="square"
+                          src={selectedPatient?.picture || `${selectedPatient?.name.replace(/\s+/g, '')}.jpeg`}
+                          icon={<UserOutlined />}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
                       </div>
                     </div>
+                  }
+                >
+                  <div className="space-y-3">
+                    <div className="p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                      <Text strong className="text-lg">Name: </Text>
+                      <Text className="text-lg">{selectedPatient?.name}</Text>
+                    </div>
+                    <div className="p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                      <Text strong className="text-lg">Age: </Text>
+                      <Text className="text-lg">{selectedPatient?.age} years old</Text>
+                    </div>
+                    <div className="p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                      <Text strong className="text-lg">Client Since: </Text>
+                      <Text className="text-lg">{selectedPatient?.client_since ? formatDate(selectedPatient.client_since) : ''}</Text>
+                    </div>
+                    <div className="p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                      <div className="space-y-2">
+                        <div>
+                          <Text strong className="text-xl block mb-1">About</Text>
+                          <Text className="text-lg text-gray-600">{selectedPatient?.about}</Text>
+                        </div>
+                        <div>
+                          <Text strong className="text-xl block mb-1">Triggers</Text>
+                          <Text className="text-lg text-gray-600">{selectedPatient?.triggers}</Text>
+                        </div>
+                        <div>
+                          <Text strong className="text-xl block mb-1">Medication</Text>
+                          <Text className="text-lg text-gray-600">
+                            {selectedPatient?.medication?.join(', ') || 'N/A'}
+                          </Text>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              </div>
             </Col>
 
             {/* Right Column: Transcripts / Chatbot */}
