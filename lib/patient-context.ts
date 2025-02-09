@@ -57,7 +57,6 @@ export async function getPatientContext(patientId: number): Promise<PatientConte
       lastSessionSummary: lastSession?.summary,
       clientSince: patient.joined_date,
       triggers: patient.triggers || [],
-      notes: patient.notes,
     };
   } catch (error) {
     console.error('Error fetching patient context:', error);

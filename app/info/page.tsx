@@ -406,9 +406,11 @@ const InfoPageContent = () => {
         <Header className="bg-white p-4">
           <Row justify="space-between" align="middle" className="pl-[1%]">
             <Col>
-              <Text strong className="text-lg">
-                {selectedPatient?.name}
-              </Text>
+              <img 
+                src="/logo.png" 
+                alt="Logo" 
+                className="h-20 object-contain"
+              />
             </Col>
             <Col>
               <Space size="middle">
@@ -439,50 +441,46 @@ const InfoPageContent = () => {
             {/* Left Column: Patient Info */}
             <Col xs={24} md={6}>
               <Card
-                className="mb-6 bg-gray-50"
+                className="mb-6 bg-white shadow-sm"
                 cover={
                   <div className="px-4 pt-4">
-                    <div
-                      style={{
-                        position: "relative",
-                        width: "95%",
-                        paddingTop: "95%",
-                        margin: "0 auto",
-                      }}
-                    >
+                    <div className="relative w-32 h-32 mx-auto">
                       <Avatar
                         shape="square"
                         src={selectedPatient?.picture || `${selectedPatient?.name.replace(/\s+/g, '')}.jpeg`}
                         icon={<UserOutlined />}
-                        className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
-                        style={{ position: "absolute" }}
+                        className="w-full h-full object-cover rounded-lg"
                       />
                     </div>
                   </div>
                 }
               >
-                <div className="space-y-4">
-                  <div className="p-3 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer text-2xl">
-                    <Text strong className="text-2xl">Age: </Text>
-                    <Text className="text-2xl">{selectedPatient?.age} years old</Text>
+                <div className="space-y-3">
+                  <div className="p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                    <Text strong className="text-lg">Name: </Text>
+                    <Text className="text-lg">{selectedPatient?.name}</Text>
                   </div>
-                  <div className="p-3 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer text-2xl">
-                    <Text strong className="text-2xl">Client Since: </Text>
-                    <Text className="text-2xl">{selectedPatient?.client_since ? formatDate(selectedPatient.client_since) : ''}</Text>
+                  <div className="p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                    <Text strong className="text-lg">Age: </Text>
+                    <Text className="text-lg">{selectedPatient?.age} years old</Text>
                   </div>
-                  <div className="p-4 bg-green-100 rounded-lg hover:bg-green-200 transition-colors cursor-pointer mt-4">
-                    <div className="space-y-3 text-2xl">
+                  <div className="p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                    <Text strong className="text-lg">Client Since: </Text>
+                    <Text className="text-lg">{selectedPatient?.client_since ? formatDate(selectedPatient.client_since) : ''}</Text>
+                  </div>
+                  <div className="p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                    <div className="space-y-2">
                       <div>
-                        <Text strong className="text-2xl">About: </Text>
-                        <Text className="text-2xl">{selectedPatient?.about}</Text>
+                        <Text strong className="text-lg block mb-1">About</Text>
+                        <Text className="text-base text-gray-600">{selectedPatient?.about}</Text>
                       </div>
                       <div>
-                        <Text strong className="text-2xl">Triggers: </Text>
-                        <Text className="text-2xl">{selectedPatient?.triggers}</Text>
+                        <Text strong className="text-lg block mb-1">Triggers</Text>
+                        <Text className="text-base text-gray-600">{selectedPatient?.triggers}</Text>
                       </div>
                       <div>
-                        <Text strong className="text-2xl">Medication: </Text>
-                        <Text className="text-2xl">
+                        <Text strong className="text-lg block mb-1">Medication</Text>
+                        <Text className="text-base text-gray-600">
                           {selectedPatient?.medication?.join(', ') || 'N/A'}
                         </Text>
                       </div>
@@ -533,8 +531,13 @@ const InfoPageContent = () => {
                 <div className="space-y-6">
                   <div>
                     <Title level={4}>Echo Summary</Title>
-                    <Text className="text-xl">
-                      {currentTranscript?.summary || "No summary available"}
+                    <Text className="text-xl whitespace-pre-line">
+                      {currentTranscript?.summary?.split('•').map((point: string, index: number) => (
+                        index === 0 ? point : // Skip adding bullet for first empty item
+                        <React.Fragment key={index}>
+                          <span className="inline-block mb-0.5">• {point}</span>
+                        </React.Fragment>
+                      )) || "No summary available"}
                     </Text>
                   </div>
 

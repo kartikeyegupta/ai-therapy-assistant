@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       messages: [
         {
           role: 'system',
-          content: 'You are an experienced therapist. Summarize the following therapy session transcript using a clinical, empathetic, and therapeutically informed lexicon. Emphasize key emotional insights and therapeutic themes concisely. Make it thorough and detailed, with analysis of the client\'s emotional state and therapeutic progress. Make it 300 words or more.'
+          content: 'You are an experienced therapist. Summarize the following therapy session transcript using a clinical, empathetic, and therapeutically informed lexicon. Emphasize key emotional insights and therapeutic themes concisely. Make it thorough and detailed, with analysis of the client\'s emotional state and therapeutic progress. Make it 300 words or more, and separate the summary into bullet points for each section.'
         },
         {
           role: 'user',
