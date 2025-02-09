@@ -1,14 +1,6 @@
 "use client";
-import React, { useRef, useEffect } from "react";
-import {
-  Button,
-  Typography,
-  Card,
-  Row,
-  Col,
-  Space,
-  Layout,
-} from "antd";
+import React, { useRef, useEffect, useState } from "react";
+import { Button, Typography, Card, Row, Col, Space, Layout, Modal } from "antd";
 import Link from "next/link";
 import "@ant-design/v5-patch-for-react-19";
 
@@ -21,26 +13,27 @@ const testimonials = [
     comment: "Echo saves me 5+ hours every week on documentation.",
     author: "Dr. Sarah Johnson",
     role: "Clinical Psychologist",
-    avatar: "/therapist1.png",
+    avatar: "/therapist1.jpg",
   },
   {
     id: 2,
     comment: "The AI insights help me provide better care.",
     author: "Mark Thompson",
     role: "Licensed Therapist",
-    avatar: "/therapist1.png",
+    avatar: "/therapist3.jpg",
   },
   {
     id: 3,
     comment: "Finally, I can be fully present during sessions.",
     author: "Dr. Emily Chen",
     role: "Family Therapist",
-    avatar: "/therapist1.png",
+    avatar: "/therapist2.jpg",
   },
 ];
 
 export default function Home() {
   const carouselRef = useRef<HTMLDivElement>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     const carousel = carouselRef.current;
@@ -48,22 +41,34 @@ export default function Home() {
       const scrollWidth = carousel.scrollWidth;
       const animationDuration = scrollWidth / 50;
       carousel.style.setProperty("--scroll-width", `${scrollWidth}px`);
-      carousel.style.setProperty("--animation-duration", `${animationDuration}s`);
+      carousel.style.setProperty(
+        "--animation-duration",
+        `${animationDuration}s`
+      );
     }
   }, []);
+
+  const handleImageClick = (imageSrc: string) => {
+    setSelectedImage(imageSrc);
+  };
 
   return (
     <Layout className="min-h-screen">
       {/* Navigation Header */}
-      <Header style={{ background: 'none', border: 'none' }} className="absolute w-full z-10">
+      <Header
+        style={{ background: "none", border: "none" }}
+        className="absolute w-full z-10"
+      >
         <div className="w-full px-4 flex justify-between items-center h-full">
           <Space align="center" className="absolute left-8" size="middle">
-            <img 
-              src="/logo.png" 
-              alt="Echo Logo" 
+            <img
+              src="/logo.png"
+              alt="Echo Logo"
               className="h-12 w-12 object-contain"
             />
-            <Text strong className="text-3xl text-green-700">Echo</Text>
+            <Text strong className="text-3xl text-green-700">
+              Echo
+            </Text>
           </Space>
           <Space className="absolute right-8">
             <Link href="/current">
@@ -84,9 +89,9 @@ export default function Home() {
               Transform Your Therapy Practice
             </Title>
             <Paragraph className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Echo helps therapists focus on their clients. Our AI-powered platform automates 
-              note-taking and provides insights, saving you hours each week while improving 
-              documentation quality.
+              Echo helps therapists focus on their clients. Our AI-powered
+              platform automates note-taking and provides insights, saving you
+              hours each week while improving documentation quality.
             </Paragraph>
           </div>
 
@@ -107,10 +112,12 @@ export default function Home() {
           {/* Stats Section */}
           <div className="mb-20 text-center">
             <Text className="text-gray-600 text-2xl font-medium block mb-3">
-              Trusted by thousands of mental health professionals across the globe
+              Trusted by thousands of mental health professionals across the
+              globe
             </Text>
             <Text className="text-gray-600 text-xl">
-              Join the community of therapists who save 5+ hours every week with Echo
+              Join the community of therapists who save 5+ hours every week with
+              Echo
             </Text>
           </div>
 
@@ -124,27 +131,34 @@ export default function Home() {
               <div className="fadeRight" />
               <div className="carousel" ref={carouselRef}>
                 <div className="carouselTrack">
-                  {[...testimonials, ...testimonials].map((testimonial, index) => (
-                    <Card 
-                      key={`${testimonial.id}-${index}`} 
-                      className="feedbackCard"
-                    >
-                      <div className="flex items-start space-x-4 p-4">
-                        <img 
-                          src={testimonial.avatar} 
-                          alt={testimonial.author}
-                          className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                        />
-                        <div>
-                          <Paragraph className="text-base mb-2 font-medium">
-                            "{testimonial.comment}"
-                          </Paragraph>
-                          <Text strong className="block text-sm">{testimonial.author}</Text>
-                          <Text type="secondary" className="text-xs">{testimonial.role}</Text>
+                  {[...testimonials, ...testimonials].map(
+                    (testimonial, index) => (
+                      <Card
+                        key={`${testimonial.id}-${index}`}
+                        className="feedbackCard"
+                      >
+                        <div className="flex items-start space-x-4 p-4">
+                          <img
+                            src={testimonial.avatar}
+                            alt={testimonial.author}
+                            className="w-12 h-12 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => handleImageClick(testimonial.avatar)}
+                          />
+                          <div>
+                            <Paragraph className="text-base mb-2 font-medium">
+                              "{testimonial.comment}"
+                            </Paragraph>
+                            <Text strong className="block text-sm">
+                              {testimonial.author}
+                            </Text>
+                            <Text type="secondary" className="text-xs">
+                              {testimonial.role}
+                            </Text>
+                          </div>
                         </div>
-                      </div>
-                    </Card>
-                  ))}
+                      </Card>
+                    )
+                  )}
                 </div>
               </div>
             </div>
@@ -164,6 +178,22 @@ export default function Home() {
           <Text type="secondary">© 2024 Echo. All rights reserved.</Text>
         </div>
       </Footer>
+
+      <Modal
+        open={!!selectedImage}
+        footer={null}
+        onCancel={() => setSelectedImage(null)}
+        width="auto"
+        centered
+      >
+        {selectedImage && (
+          <img
+            src={selectedImage}
+            alt="Enlarged therapist"
+            className="max-h-[80vh] w-auto"
+          />
+        )}
+      </Modal>
     </Layout>
   );
 }
