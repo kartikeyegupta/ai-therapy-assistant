@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import {
   Button,
   Typography,
@@ -15,7 +15,43 @@ import "@ant-design/v5-patch-for-react-19";
 const { Title, Paragraph, Text } = Typography;
 const { Header, Footer, Content } = Layout;
 
+const testimonials = [
+  {
+    id: 1,
+    comment: "Echo saves me 5+ hours every week on documentation.",
+    author: "Dr. Sarah Johnson",
+    role: "Clinical Psychologist",
+    avatar: "/therapist1.png",
+  },
+  {
+    id: 2,
+    comment: "The AI insights help me provide better care.",
+    author: "Mark Thompson",
+    role: "Licensed Therapist",
+    avatar: "/therapist1.png",
+  },
+  {
+    id: 3,
+    comment: "Finally, I can be fully present during sessions.",
+    author: "Dr. Emily Chen",
+    role: "Family Therapist",
+    avatar: "/therapist1.png",
+  },
+];
+
 export default function Home() {
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (carousel) {
+      const scrollWidth = carousel.scrollWidth;
+      const animationDuration = scrollWidth / 50;
+      carousel.style.setProperty("--scroll-width", `${scrollWidth}px`);
+      carousel.style.setProperty("--animation-duration", `${animationDuration}s`);
+    }
+  }, []);
+
   return (
     <Layout className="min-h-screen">
       {/* Navigation Header */}
@@ -81,65 +117,35 @@ export default function Home() {
             <Title level={2} className="text-center mb-12">
               Trusted by Leading Therapists
             </Title>
-            <Row gutter={[32, 32]} justify="center">
-              <Col xs={24} md={8}>
-                <Card className="h-full">
-                  <div className="flex flex-col items-center">
-                    <img 
-                      src="/therapist1.png" 
-                      alt="Dr. Sarah Johnson" 
-                      className="w-24 h-24 rounded-full object-cover mb-6"
-                    />
-                    <Paragraph className="text-lg italic mb-6">
-                      "Echo has revolutionized how I handle session documentation. I save over 5 hours every week, 
-                      giving me more time to focus on my clients."
-                    </Paragraph>
-                    <div>
-                      <Text strong className="block">Dr. Sarah Johnson</Text>
-                      <Text type="secondary">Clinical Psychologist</Text>
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-              <Col xs={24} md={8}>
-                <Card className="h-full">
-                  <div className="flex flex-col items-center">
-                    <img 
-                      src="/therapist1.png" 
-                      alt="Mark Thompson" 
-                      className="w-24 h-24 rounded-full object-cover mb-6"
-                    />
-                    <Paragraph className="text-lg italic mb-6">
-                      "The AI insights have helped me identify patterns I might have missed. It's like having 
-                      an intelligent assistant that helps me provide better care."
-                    </Paragraph>
-                    <div>
-                      <Text strong className="block">Mark Thompson</Text>
-                      <Text type="secondary">Licensed Therapist</Text>
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-              <Col xs={24} md={8}>
-                <Card className="h-full">
-                  <div className="flex flex-col items-center">
-                    <img 
-                      src="/therapist1.png" 
-                      alt="Dr. Emily Chen" 
-                      className="w-24 h-24 rounded-full object-cover mb-6"
-                    />
-                    <Paragraph className="text-lg italic mb-6">
-                      "Finally, I can be fully present during sessions without worrying about taking notes. 
-                      The documentation quality has actually improved."
-                    </Paragraph>
-                    <div>
-                      <Text strong className="block">Dr. Emily Chen</Text>
-                      <Text type="secondary">Family Therapist</Text>
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-            </Row>
+            <div className="carouselContainer">
+              <div className="fadeLeft" />
+              <div className="fadeRight" />
+              <div className="carousel" ref={carouselRef}>
+                <div className="carouselTrack">
+                  {[...testimonials, ...testimonials].map((testimonial, index) => (
+                    <Card 
+                      key={`${testimonial.id}-${index}`} 
+                      className="feedbackCard"
+                    >
+                      <div className="flex items-start space-x-4 p-4">
+                        <img 
+                          src={testimonial.avatar} 
+                          alt={testimonial.author}
+                          className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                        />
+                        <div>
+                          <Paragraph className="text-base mb-2 font-medium">
+                            "{testimonial.comment}"
+                          </Paragraph>
+                          <Text strong className="block text-sm">{testimonial.author}</Text>
+                          <Text type="secondary" className="text-xs">{testimonial.role}</Text>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* CTA Section */}

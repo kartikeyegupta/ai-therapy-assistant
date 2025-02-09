@@ -82,3 +82,64 @@ body {
   font-size: 4.5rem !important;
   color: var(--primary-green) !important;
 }
+
+/* Carousel Styles */
+.carouselContainer {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  padding: 20px 0;
+}
+
+.carousel {
+  overflow: hidden;
+}
+
+.carouselTrack {
+  display: flex;
+  animation: scroll var(--animation-duration) linear infinite;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-1 * var(--scroll-width) / 2));
+  }
+}
+
+.feedbackCard {
+  flex: 0 0 400px;
+  margin-right: 20px;
+  height: auto;
+  min-height: 120px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  transition: transform 0.2s ease;
+}
+
+.feedbackCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.fadeLeft,
+.fadeRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.fadeLeft {
+  left: -1px;
+  background: linear-gradient(to right, var(--light-green) 0%, transparent 100%);
+}
+
+.fadeRight {
+  right: -1px;
+  background: linear-gradient(to left, var(--light-green) 0%, transparent 100%);
+}
