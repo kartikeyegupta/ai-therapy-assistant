@@ -17,12 +17,13 @@ import {
   Space,
   ConfigProvider,
   Dropdown,
+  Input,
 } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import Wave from 'react-wavify'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Database } from '@/app/types/supabase'
 import Realtime from '../realtime';
 
@@ -45,6 +46,8 @@ const InfoPage = () => {
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [transcripts, setTranscripts] = useState<any[]>([]);
   const supabase = createClientComponentClient<Database>()
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const today = new Date().toLocaleDateString("en-US", {
     year: "numeric",
@@ -64,10 +67,6 @@ const InfoPage = () => {
       }
 
       setPatients(data || [])
-      // Set first patient as default selected
-      if (data && data.length > 0) {
-        setSelectedPatient(data[0])
-      }
     }
 
     fetchPatients()
@@ -98,14 +97,35 @@ const InfoPage = () => {
     fetchTranscripts();
   }, [selectedPatient]);
 
-  const clientsMenu: MenuProps["items"] = patients.map((patient) => ({
-    key: patient.id,
+  useEffect(() => {
+    const patientId = searchParams.get('patient');
+    if (patientId) {
+      handlePatientChange(patientId);
+    }
+  }, [searchParams]);
+
+  const clientsMenu = patients.map((patient) => ({
+    value: patient.id,
     label: patient.name,
   }));
 
   const handlePatientChange = async (patientId: string) => {
-    const selected = patients.find(p => p.id === patientId);
-    setSelectedPatient(selected);
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('id', parseInt(patientId))
+        .single();
+
+      if (error) {
+        console.error('Error fetching patient details:', error);
+        return;
+      }
+
+      setSelectedPatient(data);
+    } catch (err) {
+      console.error('Error in handlePatientChange:', err);
+    }
   };
 
   const timelineItems = [
@@ -310,6 +330,17 @@ const InfoPage = () => {
   // Get the current transcript based on selected session
   const currentTranscript = transcripts.find(t => t.date === selectedSession);
 
+  // Add function to filter transcript items
+  const getFilteredTranscript = () => {
+    if (!currentTranscript?.transcript || !searchQuery) {
+      return currentTranscript?.transcript;
+    }
+    
+    return currentTranscript.transcript.filter((entry: { time: string; text: string }) => 
+      entry.text.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
+
   return (
     <ConfigProvider
       theme={{
@@ -331,17 +362,13 @@ const InfoPage = () => {
             </Col>
             <Col>
               <Space size="middle">
-                <Dropdown 
-                  menu={{ 
-                    items: clientsMenu,
-                    onClick: ({ key }) => handlePatientChange(key)
-                  }} 
-                  placement="bottomRight"
-                >
-                  <Button type="primary" className="min-w-[120px]" style={{ backgroundColor: "#7ED957" }}>
-                    Clients
-                  </Button>
-                </Dropdown>
+                <Select 
+                  placeholder="Clients"
+                  style={{ width: 200 }}
+                  options={clientsMenu}
+                  onChange={handlePatientChange}
+                  value={selectedPatient?.id}
+                />
                 <Button
                   type="primary"
                   className="min-w-[120px]"
@@ -463,7 +490,20 @@ const InfoPage = () => {
               {/* Chatbot Transcript Card */}
               <Card
                 title={
-                  <span className="text-xl">Transcript</span>
+                  <Row justify="space-between" align="middle">
+                    <span className="text-xl">Transcript</span>
+                    <Space>
+                      <Input.Search
+                        placeholder="Search transcript..."
+                        allowClear
+                        onSearch={(value) => setSearchQuery(value)}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{ width: 300 }}
+                        size="large"
+                        className="text-lg"
+                      />
+                    </Space>
+                  </Row>
                 }
                 className="mb-6"
               >
@@ -471,7 +511,7 @@ const InfoPage = () => {
                   <Timeline 
                     className="text-lg"
                     items={currentTranscript?.transcript ? 
-                      currentTranscript.transcript.map((entry: { time: string; text: string }) => ({
+                      getFilteredTranscript()?.map((entry: { time: string; text: string }) => ({
                         children: (
                           <>
                             <Text strong>{entry.time}</Text> —{" "}

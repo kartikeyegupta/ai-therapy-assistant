@@ -5,6 +5,7 @@ import { Button, Layout, Typography, Card, Row, Col, Space, Select } from 'antd'
 import { AudioOutlined, LoadingOutlined } from '@ant-design/icons';
 import '@ant-design/v5-patch-for-react-19';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const { Content, Header } = Layout;
 
@@ -32,8 +33,17 @@ const CurrentPage = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const [therapistNotes, setTherapistNotes] = useState('');
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
+  const router = useRouter();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStep, setProcessingStep] = useState(0);
+  const [processingMessage, setProcessingMessage] = useState('');
 
   const startRecording = async () => {
+    if (!selectedPatientId) {
+      return;
+    }
+
     try {
       if (isPaused && mediaRecorderRef.current) {
         // Resume recording if paused
@@ -223,72 +233,115 @@ const CurrentPage = () => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  const formatTranscriptSegments = (segments: any[]) => {
+    const formatted = segments.map(segment => ({
+      text: segment.text.trim(),
+      time: segment.startFormatted
+    }));
+    console.log('Formatted transcript array:', JSON.stringify(formatted, null, 2));
+    return formatted;
+  };
+
   const handleGenerateSummary = async () => {
     try {
-      console.log('Starting summary generation...');
+      setIsProcessing(true);
+      setProcessingStep(0);
+      setProcessingMessage('Preparing audio data...');
+
       const audioData = localStorage.getItem('recorded_audio');
       if (!audioData) {
         console.error('No audio data found');
         return;
       }
-      console.log('Audio data retrieved from localStorage');
 
+      setProcessingStep(20);
+      setProcessingMessage('Transcribing audio...');
+      
       // Convert base64 to blob
       const base64Response = await fetch(audioData);
       const audioBlob = await base64Response.blob();
-      console.log('Audio blob created:', audioBlob.size, 'bytes');
 
-      // Create form data
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
-      console.log('FormData created with audio blob');
 
       // Call the transcribe API
-      console.log('Sending request to /api/transcribe...');
       const response = await fetch('/api/transcribe', {
         method: 'POST',
         body: formData,
       });
 
-      console.log('Response received:', response.status, response.statusText);
+      setProcessingStep(40);
+      setProcessingMessage('Analyzing transcript...');
       
-      // Read the response as text first for debugging
       const rawResponse = await response.text();
-      console.log('Raw response:', rawResponse);
-
-      // Parse the text response as JSON
       const data = JSON.parse(rawResponse);
-      console.log('Parsed response data:', data);
 
-      if (data.transcript) {
-        console.log('Transcription:', data.transcript);
+      if (data.segments) {
+        const formattedTranscript = formatTranscriptSegments(data.segments);
         
-        // Call the summarize API with the transcript
-        console.log('Calling summarize API...');
+        setProcessingStep(60);
+        setProcessingMessage('Generating summary...');
+        
+        // Call the summarize API
         const summaryResponse = await fetch('/api/summarize', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ transcript: data.transcript }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript: formattedTranscript }),
         });
 
         const summaryData = await summaryResponse.json();
-        console.log('Summary response:', summaryData);
         
         if (summaryData.summary) {
-          console.log('Generated summary:', summaryData.summary);
-        } else {
-          console.error('No summary in response:', summaryData);
+          setProcessingStep(80);
+          setProcessingMessage('Creating one-sentence summary...');
+          
+          // Get one-sentence summary
+          const oneSentenceResponse = await fetch('/api/one-sentence', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ summary: summaryData.summary }),
+          });
+          
+          const { oneSentence } = await oneSentenceResponse.json();
+
+          if (!selectedPatientId) {
+            console.error('No patient selected');
+            return;
+          }
+
+          setProcessingStep(90);
+          setProcessingMessage('Saving session data...');
+
+          const saveResponse = await fetch('/api/save-transcript', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              patient_id: selectedPatientId,
+              date: new Date().toISOString(),
+              summary: summaryData.summary,
+              card_summary: oneSentence,
+              therapist_notes: therapistNotes,
+              transcript: formattedTranscript
+            }),
+          });
+
+          if (!saveResponse.ok) {
+            throw new Error('Failed to save transcript');
+          }
+
+          setProcessingStep(100);
+          setProcessingMessage('Complete! Redirecting...');
+          
+          // Small delay before redirect for smooth UX
+          setTimeout(() => {
+            router.push(`/info?patient=${selectedPatientId}`);
+          }, 500);
         }
-      } else {
-        console.error('No transcript in response data:', data);
       }
     } catch (error) {
       console.error('Error in handleGenerateSummary:', error);
-      if (error instanceof Error) {
-        console.error('Error details:', error.message, error.stack);
-      }
+      setProcessingMessage('Error occurred. Please try again.');
+      setTimeout(() => setIsProcessing(false), 2000);
     }
   };
 
@@ -333,17 +386,6 @@ const CurrentPage = () => {
             {/* ... existing logo code ... */}
           </Space>
           <Space className="absolute right-8">
-            <Select
-              placeholder="Clients"
-              style={{ width: 200 }}
-              options={patients}
-              className="mr-4"
-              onChange={(value) => {
-                console.log('Selected client:', value);
-                const selected = patients.find(p => p.value === value);
-                console.log('Found patient:', selected);
-              }}
-            />
             <Link href="/info">
               <Button type="primary" size="large" className="text-lg px-8">
                 All Info
@@ -360,75 +402,167 @@ const CurrentPage = () => {
         </div>
       </div>
 
-      <Content className="p-8 relative z-10 flex items-center justify-center min-h-screen">
-        <div className="flex gap-8 w-full max-w-6xl">
-          {/* Left side - Existing recording section */}
-          <div className="flex-1 backdrop-blur-xl bg-white/80 p-6 rounded-2xl shadow-2xl border border-white/20 flex flex-col justify-center self-center">
-            <canvas 
-              ref={canvasRef}
-              className="w-full h-[120px] border border-gray-200 rounded-lg mb-3 bg-green-50"
-              width={800}
-              height={120}
-            />
-            
-            <div className="flex flex-col items-center gap-2">
-              {!isFinished ? (
-                <Button
-                  type="primary"
-                  size="large"
-                  icon={isRecording && !isPaused ? <LoadingOutlined /> : <AudioOutlined />}
-                  onClick={isRecording ? (isPaused ? startRecording : pauseRecording) : startRecording}
-                  className={`${
-                    isRecording && !isPaused ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'
-                  } transition-all duration-300`}
-                >
-                  {isRecording ? (isPaused ? 'Resume Recording' : 'Pause Recording') : 'Start Recording'}
-                </Button>
-              ) : null}
-              
-              {(isRecording || isPaused) && (
-                <Button
-                  type="primary"
-                  size="large"
-                  danger
-                  onClick={stopRecording}
-                  className="bg-red-500 hover:bg-red-600"
-                >
-                  Stop Recording
-                </Button>
-              )}
-
-              {isFinished && (
-                <Button
-                  type="primary"
-                  size="large"
-                  onClick={handleGenerateSummary}
-                  className="bg-blue-500 hover:bg-blue-600"
-                >
-                  Generate Summary
-                </Button>
-              )}
-
-              {(isRecording || isPaused) && (
-                <div className="text-gray-600 font-mono text-lg">
-                  {formatTime(recordingTime)}
+      <Content className="p-8 relative z-10 flex items-center justify-center min-h-[calc(100vh-64px)]">
+        <div className="flex gap-8 w-full max-w-6xl h-full items-center justify-center">
+          {/* Left side - Recording section with Patient Selection */}
+          <div className="flex-1 flex flex-col gap-4 self-center">
+            {/* New Patient Selection Card */}
+            <div className="backdrop-blur-xl bg-white/80 p-6 rounded-2xl shadow-2xl border border-white/20">
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <h2 className="text-xl font-semibold mb-2 text-gray-700">Select Client</h2>
+                  <Select
+                    placeholder="Choose a client to begin"
+                    style={{ width: '100%' }}
+                    options={patients}
+                    size="large"
+                    status={!selectedPatientId ? 'warning' : undefined}
+                    onChange={(value) => {
+                      console.log('Selected client:', value);
+                      setSelectedPatientId(value);
+                    }}
+                    className="w-full"
+                  />
                 </div>
-              )}
+                {!selectedPatientId && (
+                  <div className="text-amber-600 text-sm">
+                    ⚠️ Please select a client before recording
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Recording Interface */}
+            <div className="backdrop-blur-xl bg-white/80 p-6 rounded-2xl shadow-2xl border border-white/20 flex flex-col justify-center">
+              <canvas 
+                ref={canvasRef}
+                className="w-full h-[120px] border border-gray-200 rounded-lg mb-3 bg-green-50"
+                width={800}
+                height={120}
+              />
+              
+              <div className="flex flex-col items-center gap-2">
+                {!isFinished ? (
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={isRecording && !isPaused ? <LoadingOutlined /> : <AudioOutlined />}
+                    onClick={isRecording ? (isPaused ? startRecording : pauseRecording) : startRecording}
+                    className={`${
+                      isRecording && !isPaused ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'
+                    } transition-all duration-300`}
+                    disabled={!selectedPatientId}
+                    title={!selectedPatientId ? "Please select a client first" : ""}
+                  >
+                    {!selectedPatientId 
+                      ? 'Select Client to Record' 
+                      : isRecording 
+                        ? (isPaused ? 'Resume Recording' : 'Pause Recording') 
+                        : 'Start Recording'}
+                  </Button>
+                ) : null}
+                
+                {(isRecording || isPaused) && (
+                  <Button
+                    type="primary"
+                    size="large"
+                    danger
+                    onClick={stopRecording}
+                    className="bg-red-500 hover:bg-red-600"
+                  >
+                    Stop Recording
+                  </Button>
+                )}
+
+                {isFinished && (
+                  <Button
+                    type="primary"
+                    size="large"
+                    onClick={handleGenerateSummary}
+                    className="bg-blue-500 hover:bg-blue-600"
+                  >
+                    Generate Summary
+                  </Button>
+                )}
+
+                {(isRecording || isPaused) && (
+                  <div className="text-gray-600 font-mono text-lg">
+                    {formatTime(recordingTime)}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Right side - New Therapist Notes */}
-          <div className="w-[400px] backdrop-blur-xl bg-white/80 p-8 rounded-2xl shadow-2xl border border-white/20">
+          {/* Right side - Therapist Notes */}
+          <div className="w-[400px] backdrop-blur-xl bg-white/80 p-8 rounded-2xl shadow-2xl border border-white/20 self-center">
             <h2 className="text-xl font-semibold mb-4 text-gray-700">Therapist Notes</h2>
             <textarea
               value={therapistNotes}
               onChange={(e) => setTherapistNotes(e.target.value)}
               className="w-full h-[500px] p-4 rounded-lg border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white/90 resize-none font-sans text-gray-700 leading-relaxed focus:outline-none transition-all duration-200"
-              placeholder="Enter your session notes here..."
+              placeholder={selectedPatientId ? "Enter your session notes here..." : "Please select a client first"}
+              disabled={!selectedPatientId}
             />
           </div>
         </div>
       </Content>
+
+      {isProcessing && (
+        <div className="fixed inset-0 bg-white/95 z-50 flex flex-col items-center justify-center p-8">
+          <div className="w-full max-w-2xl">
+            {/* Progress percentage */}
+            <div className="text-4xl font-bold text-green-600 text-center mb-4">
+              {processingStep}%
+            </div>
+            
+            {/* Main progress bar */}
+            <div className="w-full h-6 bg-gray-100 rounded-full overflow-hidden mb-6 relative">
+              <div 
+                className="h-full bg-gradient-to-r from-green-400 via-green-500 to-green-600 transition-all duration-500 ease-out relative"
+                style={{ width: `${processingStep}%` }}
+              >
+                {/* Animated shine effect */}
+                <div className="absolute inset-0 progress-shine"></div>
+              </div>
+            </div>
+
+            {/* Processing step indicator */}
+            <div className="relative mb-8">
+              <div className="text-xl text-green-700 text-center font-medium animate-pulse">
+                {processingMessage}
+              </div>
+            </div>
+
+            {/* Processing steps visualization */}
+            <div className="flex justify-between items-center w-full max-w-xl mx-auto">
+              {['Recording', 'Transcribing', 'Analyzing', 'Summarizing'].map((step, index) => {
+                const stepValue = (index + 1) * 25;
+                const isCompleted = processingStep >= stepValue;
+                const isActive = processingStep >= stepValue - 25 && processingStep < stepValue;
+                
+                return (
+                  <div key={step} className="flex flex-col items-center">
+                    <div 
+                      className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 transition-all duration-300
+                        ${isCompleted ? 'bg-green-500 scale-110' : 
+                          isActive ? 'bg-green-400 scale-105 animate-pulse' : 
+                          'bg-gray-200'}`}
+                    >
+                      {isCompleted && (
+                        <span className="text-white">✓</span>
+                      )}
+                    </div>
+                    <span className={`text-sm ${isActive ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
+                      {step}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         #particles-background {
@@ -451,7 +585,42 @@ const CurrentPage = () => {
           }
         }
 
-        /* Remove previous wave animations */
+        @keyframes shine {
+          0% {
+            transform: translateX(-100%) skewX(-15deg);
+          }
+          100% {
+            transform: translateX(200%) skewX(-15deg);
+          }
+        }
+
+        .progress-shine {
+          background: linear-gradient(
+            90deg,
+            rgba(255,255,255,0) 0%,
+            rgba(255,255,255,0.4) 50%,
+            rgba(255,255,255,0) 100%
+          );
+          animation: shine 2s infinite;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+          animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+
+        .animate-pulse {
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
       `}</style>
     </Layout>
   );
