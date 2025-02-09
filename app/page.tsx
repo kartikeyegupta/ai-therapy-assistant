@@ -3,7 +3,11 @@ import React, { useRef, useEffect } from "react";
 import { Button, Typography, Card, Row, Col, Space, Layout } from "antd";
 import Link from "next/link";
 import "@ant-design/v5-patch-for-react-19";
-import { StarOutlined, ClockCircleOutlined, MessageOutlined } from "@ant-design/icons";
+import {
+  StarOutlined,
+  ClockCircleOutlined,
+  MessageOutlined,
+} from "@ant-design/icons";
 
 const { Title, Paragraph, Text } = Typography;
 const { Header, Footer, Content } = Layout;
@@ -47,17 +51,20 @@ const features = [
   {
     icon: <StarOutlined className="text-2xl" />,
     title: "AI-Powered Notes",
-    description: "Automatically generate comprehensive session notes using advanced AI technology.",
+    description:
+      "Automatically generate comprehensive session notes using advanced AI technology.",
   },
   {
     icon: <ClockCircleOutlined className="text-2xl" />,
     title: "Save Time",
-    description: "Reduce administrative work by hours each week with automated documentation.",
+    description:
+      "Reduce administrative work by hours each week with automated documentation.",
   },
   {
     icon: <MessageOutlined className="text-2xl" />,
     title: "Real-Time Chat",
-    description: "Engage in real-time conversations to better understand patients and their conditions.",
+    description:
+      "Engage in real-time conversations to better understand patients and their conditions.",
   },
 ];
 
@@ -80,12 +87,12 @@ export default function Home() {
     const leaves = leavesRef.current;
     if (leaves) {
       setTimeout(() => {
-        leaves.style.transition = 'opacity 1s ease-out';
-        leaves.style.opacity = '0';
+        leaves.style.transition = "opacity 1s ease-out";
+        leaves.style.opacity = "0";
       }, 6000);
-      
+
       setTimeout(() => {
-        leaves.style.display = 'none';
+        leaves.style.display = "none";
       }, 7000);
     }
   }, []);
@@ -154,11 +161,14 @@ export default function Home() {
 
           <div className="mb-20">
             <div className="relative w-full max-w-4xl mx-auto bg-green-50 rounded-xl overflow-hidden">
-              <img
-                src="/image.png"
-                alt="Echo Demo"
-                className="w-full aspect-video object-cover"
-              />
+              <iframe
+                className="w-full aspect-video"
+                src="https://www.youtube.com/embed/Eudud6eaGBk"
+                title="Two-Minute Demo Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
             </div>
           </div>
 
@@ -190,9 +200,7 @@ export default function Home() {
                 <Col key={index} xs={24} md={8} className="mb-8 md:mb-0">
                   <div className="flex flex-col items-center text-center">
                     <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center text-green-600 mb-5">
-                      <div className="text-3xl">
-                        {feature.icon}
-                      </div>
+                      <div className="text-3xl">{feature.icon}</div>
                     </div>
                     <Title level={3} className="!text-2xl !mb-3 !text-gray-800">
                       {feature.title}
