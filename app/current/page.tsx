@@ -9,6 +9,8 @@ const { Content } = Layout;
 
 const CurrentPage = () => {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
   const [audioData, setAudioData] = useState<Float32Array | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -21,12 +23,36 @@ const CurrentPage = () => {
   const FRAME_THROTTLE = 3; // Only sample every Nth frame (increase this number to move slower)
   const [recordingTime, setRecordingTime] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const startRecording = async () => {
     try {
+      if (isPaused && mediaRecorderRef.current) {
+        // Resume recording if paused
+        mediaRecorderRef.current.resume();
+        setIsPaused(false);
+        // Resume timer
+        timerIntervalRef.current = setInterval(() => {
+          setRecordingTime(prev => prev + 1);
+        }, 1000);
+        // Resume waveform animation
+        drawWaveform();
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm' // We'll convert this to MP3 later
+      });
       mediaRecorderRef.current = mediaRecorder;
+
+      // Set up data handling
+      audioChunksRef.current = [];
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
 
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
@@ -40,7 +66,7 @@ const CurrentPage = () => {
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
 
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // Collect data every second
       setIsRecording(true);
       frameCountRef.current = 0;
       dataArrayRef.current = [];
@@ -54,11 +80,46 @@ const CurrentPage = () => {
     }
   };
 
+  const pauseRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.pause();
+      setIsPaused(true);
+      // Pause timer
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+      // Pause waveform animation
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    }
+  };
+
   const stopRecording = () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      
+      // Handle the recorded audio
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        
+        try {
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlob);
+          reader.onloadend = () => {
+            const base64Audio = reader.result as string;
+            localStorage.setItem('recorded_audio', base64Audio);
+            console.log('Audio saved to local storage');
+          };
+        } catch (error) {
+          console.error('Error saving audio:', error);
+        }
+      };
+
       setIsRecording(false);
+      setIsPaused(false);
+      setIsFinished(true);
       // Clear the waveform data
       dataArrayRef.current = [];
       if (timerIntervalRef.current) {
@@ -154,6 +215,11 @@ const CurrentPage = () => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  const handleGenerateSummary = async () => {
+    // TODO: Implement summary generation
+    console.log('Generating summary...');
+  };
+
   return (
     <Layout className="min-h-screen relative overflow-hidden bg-white">
       <div className="absolute inset-0">
@@ -173,18 +239,44 @@ const CurrentPage = () => {
           />
           
           <div className="flex flex-col items-center gap-4">
-            <Button
-              type="primary"
-              size="large"
-              icon={isRecording ? <LoadingOutlined /> : <AudioOutlined />}
-              onClick={isRecording ? stopRecording : startRecording}
-              className={`${
-                isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700'
-              } transition-all duration-300`}
-            >
-              {isRecording ? 'Stop Recording' : 'Start Recording'}
-            </Button>
-            {isRecording && (
+            {!isFinished ? (
+              <Button
+                type="primary"
+                size="large"
+                icon={isRecording && !isPaused ? <LoadingOutlined /> : <AudioOutlined />}
+                onClick={isRecording ? (isPaused ? startRecording : pauseRecording) : startRecording}
+                className={`${
+                  isRecording && !isPaused ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'
+                } transition-all duration-300`}
+              >
+                {isRecording ? (isPaused ? 'Resume Recording' : 'Pause Recording') : 'Start Recording'}
+              </Button>
+            ) : null}
+            
+            {(isRecording || isPaused) && (
+              <Button
+                type="primary"
+                size="large"
+                danger
+                onClick={stopRecording}
+                className="bg-red-500 hover:bg-red-600"
+              >
+                Stop Recording
+              </Button>
+            )}
+
+            {isFinished && (
+              <Button
+                type="primary"
+                size="large"
+                onClick={handleGenerateSummary}
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                Generate Summary
+              </Button>
+            )}
+
+            {(isRecording || isPaused) && (
               <div className="text-gray-600 font-mono text-lg">
                 {formatTime(recordingTime)}
               </div>
