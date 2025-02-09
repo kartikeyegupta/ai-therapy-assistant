@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Button, Layout } from 'antd';
+import { Button, Layout, Typography, Card, Row, Col, Space, Select } from 'antd';
 import { AudioOutlined, LoadingOutlined } from '@ant-design/icons';
 import '@ant-design/v5-patch-for-react-19';
+import Link from 'next/link';
 
-const { Content } = Layout;
+const { Content, Header } = Layout;
 
 const CurrentPage = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -24,6 +25,8 @@ const CurrentPage = () => {
   const [recordingTime, setRecordingTime] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const [therapistNotes, setTherapistNotes] = useState('');
+  const [patients, setPatients] = useState([]);
 
   const startRecording = async () => {
     try {
@@ -216,12 +219,115 @@ const CurrentPage = () => {
   };
 
   const handleGenerateSummary = async () => {
-    // TODO: Implement summary generation
-    console.log('Generating summary...');
+    try {
+      console.log('Starting summary generation...');
+      const audioData = localStorage.getItem('recorded_audio');
+      if (!audioData) {
+        console.error('No audio data found');
+        return;
+      }
+      console.log('Audio data retrieved from localStorage');
+
+      // Convert base64 to blob
+      const base64Response = await fetch(audioData);
+      const audioBlob = await base64Response.blob();
+      console.log('Audio blob created:', audioBlob.size, 'bytes');
+
+      // Create form data
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.webm');
+      console.log('FormData created with audio blob');
+
+      // Call the transcribe API
+      console.log('Sending request to /api/transcribe...');
+      const response = await fetch('/api/transcribe', {
+        method: 'POST',
+        body: formData,
+      });
+
+      console.log('Response received:', response.status, response.statusText);
+      
+      // Read the response as text first for debugging
+      const rawResponse = await response.text();
+      console.log('Raw response:', rawResponse);
+
+      // Parse the text response as JSON
+      const data = JSON.parse(rawResponse);
+      console.log('Parsed response data:', data);
+
+      if (data.transcript) {
+        console.log('Transcription:', data.transcript);
+        
+        // Call the summarize API with the transcript
+        console.log('Calling summarize API...');
+        const summaryResponse = await fetch('/api/summarize', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ transcript: data.transcript }),
+        });
+
+        const summaryData = await summaryResponse.json();
+        console.log('Summary response:', summaryData);
+        
+        if (summaryData.summary) {
+          console.log('Generated summary:', summaryData.summary);
+        } else {
+          console.error('No summary in response:', summaryData);
+        }
+      } else {
+        console.error('No transcript in response data:', data);
+      }
+    } catch (error) {
+      console.error('Error in handleGenerateSummary:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message, error.stack);
+      }
+    }
   };
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const response = await fetch('/api/patients');
+        const data = await response.json();
+        const formattedPatients = data.map((patient: { id: string; name: string }) => ({
+          value: patient.id,
+          label: patient.name
+        }));
+        setPatients(formattedPatients);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      }
+    };
+
+    fetchPatients();
+  }, []);
 
   return (
     <Layout className="min-h-screen relative overflow-hidden bg-white">
+      <Header style={{ background: 'none', border: 'none' }} className="absolute w-full z-10">
+        <div className="w-full px-4 flex justify-between items-center h-full">
+          <Space align="center" className="absolute left-8" size="middle">
+            {/* ... existing logo code ... */}
+          </Space>
+          <Space className="absolute right-8">
+            <Select
+              placeholder="Clients"
+              style={{ width: 200 }}
+              options={patients}
+              className="mr-4"
+            />
+            <Link href="/info">
+              <Button type="primary" size="large" className="text-lg px-8">
+                All Info
+              </Button>
+            </Link>
+          </Space>
+        </div>
+      </Header>
+
       <div className="absolute inset-0">
         {/* Interactive background with moving dots */}
         <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
@@ -230,57 +336,71 @@ const CurrentPage = () => {
       </div>
 
       <Content className="p-8 relative z-10 flex items-center justify-center min-h-screen">
-        <div className="w-full max-w-3xl backdrop-blur-xl bg-white/80 p-8 rounded-2xl shadow-2xl border border-white/20">
-          <canvas 
-            ref={canvasRef}
-            className="w-full h-[200px] border border-gray-200 rounded-lg mb-4 bg-green-50"
-            width={800}
-            height={200}
-          />
-          
-          <div className="flex flex-col items-center gap-4">
-            {!isFinished ? (
-              <Button
-                type="primary"
-                size="large"
-                icon={isRecording && !isPaused ? <LoadingOutlined /> : <AudioOutlined />}
-                onClick={isRecording ? (isPaused ? startRecording : pauseRecording) : startRecording}
-                className={`${
-                  isRecording && !isPaused ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'
-                } transition-all duration-300`}
-              >
-                {isRecording ? (isPaused ? 'Resume Recording' : 'Pause Recording') : 'Start Recording'}
-              </Button>
-            ) : null}
+        <div className="flex gap-8 w-full max-w-6xl">
+          {/* Left side - Existing recording section */}
+          <div className="flex-1 backdrop-blur-xl bg-white/80 p-6 rounded-2xl shadow-2xl border border-white/20 flex flex-col justify-center self-center">
+            <canvas 
+              ref={canvasRef}
+              className="w-full h-[120px] border border-gray-200 rounded-lg mb-3 bg-green-50"
+              width={800}
+              height={120}
+            />
             
-            {(isRecording || isPaused) && (
-              <Button
-                type="primary"
-                size="large"
-                danger
-                onClick={stopRecording}
-                className="bg-red-500 hover:bg-red-600"
-              >
-                Stop Recording
-              </Button>
-            )}
+            <div className="flex flex-col items-center gap-2">
+              {!isFinished ? (
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={isRecording && !isPaused ? <LoadingOutlined /> : <AudioOutlined />}
+                  onClick={isRecording ? (isPaused ? startRecording : pauseRecording) : startRecording}
+                  className={`${
+                    isRecording && !isPaused ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'
+                  } transition-all duration-300`}
+                >
+                  {isRecording ? (isPaused ? 'Resume Recording' : 'Pause Recording') : 'Start Recording'}
+                </Button>
+              ) : null}
+              
+              {(isRecording || isPaused) && (
+                <Button
+                  type="primary"
+                  size="large"
+                  danger
+                  onClick={stopRecording}
+                  className="bg-red-500 hover:bg-red-600"
+                >
+                  Stop Recording
+                </Button>
+              )}
 
-            {isFinished && (
-              <Button
-                type="primary"
-                size="large"
-                onClick={handleGenerateSummary}
-                className="bg-blue-500 hover:bg-blue-600"
-              >
-                Generate Summary
-              </Button>
-            )}
+              {isFinished && (
+                <Button
+                  type="primary"
+                  size="large"
+                  onClick={handleGenerateSummary}
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  Generate Summary
+                </Button>
+              )}
 
-            {(isRecording || isPaused) && (
-              <div className="text-gray-600 font-mono text-lg">
-                {formatTime(recordingTime)}
-              </div>
-            )}
+              {(isRecording || isPaused) && (
+                <div className="text-gray-600 font-mono text-lg">
+                  {formatTime(recordingTime)}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right side - New Therapist Notes */}
+          <div className="w-[400px] backdrop-blur-xl bg-white/80 p-8 rounded-2xl shadow-2xl border border-white/20">
+            <h2 className="text-xl font-semibold mb-4 text-gray-700">Therapist Notes</h2>
+            <textarea
+              value={therapistNotes}
+              onChange={(e) => setTherapistNotes(e.target.value)}
+              className="w-full h-[500px] p-4 rounded-lg border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white/90 resize-none font-sans text-gray-700 leading-relaxed focus:outline-none transition-all duration-200"
+              placeholder="Enter your session notes here..."
+            />
           </div>
         </div>
       </Content>

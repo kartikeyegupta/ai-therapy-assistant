@@ -42,10 +42,10 @@ export default function RootLayout({
             components: {
               Layout: {
                 headerBg: 'transparent',
-                headerBorderColorSplit: 'transparent',
+                colorSplit: 'transparent',
               },
               Typography: {
-                fontSizeHeading1: '4.5rem',
+                fontSizeHeading1: 72,
                 colorTextHeading: '#16a34a'
               }
             }

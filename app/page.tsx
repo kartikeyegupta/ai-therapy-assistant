@@ -30,9 +30,11 @@ export default function Home() {
             <Text strong className="text-3xl text-green-700">Echo</Text>
           </Space>
           <Space className="absolute right-8">
-            <Button type="primary" size="large" className="text-lg px-8">
-              Try Echo
-            </Button>
+            <Link href="/current">
+              <Button type="primary" size="large" className="text-lg px-8">
+                Try Echo
+              </Button>
+            </Link>
           </Space>
         </div>
       </Header>
