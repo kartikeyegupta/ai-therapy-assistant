@@ -8,12 +8,12 @@ import { db } from '@/lib/db';
  * Creates a Realtime session with OpenAI
  */
 export async function GET(request: Request) {
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    const NEXT_PUBLIC_OPENAI_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
-    if (!OPENAI_API_KEY) {
-        console.error("Missing OPENAI_API_KEY in environment");
+    if (!NEXT_PUBLIC_OPENAI_API_KEY) {
+        console.error("Missing NEXT_PUBLIC_OPENAI_API_KEY in environment");
         return NextResponse.json(
-            { error: "Missing OPENAI_API_KEY in environment." },
+            { error: "Missing NEXT_PUBLIC_OPENAI_API_KEY in environment." },
             { status: 500 }
         );
     }
@@ -65,7 +65,7 @@ export async function GET(request: Request) {
         const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${OPENAI_API_KEY}`,
+                "Authorization": `Bearer ${NEXT_PUBLIC_OPENAI_API_KEY}`,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
