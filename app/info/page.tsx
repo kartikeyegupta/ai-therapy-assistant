@@ -641,7 +641,7 @@ const InfoPageContent = () => {
             style={{ backgroundColor: "#7ED957" }}
             onClick={() => setIsChatOpen(true)}
           >
-            Chat with Agent
+            Chat with Sam
           </Button>
         )}
       </Layout>

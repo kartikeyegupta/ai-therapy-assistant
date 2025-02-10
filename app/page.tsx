@@ -163,8 +163,8 @@ export default function Home() {
             <div className="relative w-full max-w-4xl mx-auto bg-green-50 rounded-xl overflow-hidden">
               <iframe
                 className="w-full aspect-video"
-                src="https://www.youtube.com/embed/Eudud6eaGBk"
-                title="Two-Minute Demo Video"
+                src="https://www.youtube.com/embed/Eudud6eaGBk?si=7Bzs_Z192DopzCfW"
+                title="Echo Demo Video"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -216,7 +216,7 @@ export default function Home() {
 
           <div className="mb-20">
             <Title level={2} className="text-center mb-12">
-              Leading Therepists Need Echo
+              Leading Therapists Need Echo
             </Title>
             <div className="carouselContainer">
               <div className="fadeLeft" />
