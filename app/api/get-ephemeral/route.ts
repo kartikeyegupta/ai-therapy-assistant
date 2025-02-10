@@ -8,12 +8,12 @@ import { db } from '@/lib/db';
  * Creates a Realtime session with OpenAI
  */
 export async function GET(request: Request) {
-    const NEXT_PUBLIC_BOOTY = process.env.NEXT_PUBLIC_BOOTY;
+    const NEXT_PUBLIC_SECRET = process.env.NEXT_PUBLIC_SECRET;
 
-    if (!NEXT_PUBLIC_BOOTY) {
-        console.error("Missing NEXT_PUBLIC_BOOTY in environment");
+    if (!NEXT_PUBLIC_SECRET) {
+        console.error("Missing NEXT_PUBLIC_SECRET in environment");
         return NextResponse.json(
-            { error: "Missing NEXT_PUBLIC_BOOTY in environment." },
+            { error: "Missing NEXT_PUBLIC_SECRET in environment." },
             { status: 500 }
         );
     }
@@ -65,7 +65,7 @@ export async function GET(request: Request) {
         const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${NEXT_PUBLIC_BOOTY}`,
+                "Authorization": `Bearer ${NEXT_PUBLIC_SECRET}`,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({

@@ -4,7 +4,7 @@ import path from 'path';
 import { NextResponse } from 'next/server';
 
 const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_BOOTY,
+  apiKey: process.env.NEXT_PUBLIC_SECRET,
 });
 
 export async function POST(request: Request) {
