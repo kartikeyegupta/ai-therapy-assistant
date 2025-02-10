@@ -29,7 +29,7 @@ const Realtime = ({ canvasRef, onClose, selectedPatient }: RealtimeProps) => {
 
     try {
       // 1) Get ephemeral token from your server
-      const tokenResp = await fetch("http://localhost:3000/api/get-ephemeral?patientId=" + selectedPatient?.id);
+      const tokenResp = await fetch('/api/get-ephemeral?patientId=' + selectedPatient?.id);
       console.log("tokenResp", tokenResp);
       if (!tokenResp.ok) throw new Error("Failed to get ephemeral token");
       const sessionData = await tokenResp.json();
