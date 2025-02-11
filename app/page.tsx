@@ -163,7 +163,7 @@ export default function Home() {
             <div className="relative w-full max-w-4xl mx-auto bg-green-50 rounded-xl overflow-hidden">
               <iframe
                 className="w-full aspect-video"
-                src="https://www.youtube.com/embed/Eudud6eaGBk?si=7Bzs_Z192DopzCfW"
+                src="https://www.youtube.com/embed/RKjndTAf08M?si=e1x-DdF0yzwKfUFj"
                 title="Echo Demo Video"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
